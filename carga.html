@@ -191,11 +191,17 @@ function fmt(n, currency) {
 }
 function formatInputNumber(n) {
   if (n === null || n === undefined || n === '' || isNaN(n)) return '';
-  return Number(n).toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  n = Number(n);
+  const neg = n < 0;
+  n = Math.abs(n);
+  let [intPart, decPart] = n.toFixed(2).split('.');
+  if (decPart === '00') decPart = '';
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (neg ? '-' : '') + intPart + (decPart ? '.' + decPart : '');
 }
 function parseInputNumber(str) {
   if (str === null || str === undefined || str === '') return NaN;
-  const cleaned = String(str).trim().replace(/\./g, '').replace(',', '.');
+  const cleaned = String(str).trim().replace(/,/g, '');
   return parseFloat(cleaned);
 }
 function attachAmountFormatting(inp) {
