@@ -39,7 +39,11 @@
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-ghost { background: var(--bg); border: 1px solid var(--border); color: var(--acai); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
   .btn-ghost:hover { background: #F0EDE8; }
+  .btn-danger { background: var(--rust-bg); border: 1px solid var(--rust); color: var(--rust); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-danger:hover { background: #F7DAD3; }
   input[type="file"] { display: none; }
+  .bulk-bar { display: flex; align-items: center; gap: 12px; background: var(--rust-bg); border: 1px solid var(--rust); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; font-size: 13px; color: var(--rust); }
+  .acct-select { margin-right: 8px; accent-color: var(--acai); vertical-align: middle; }
 
   .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
   .bank-panel .current { flex: 1; min-width: 220px; }
@@ -65,8 +69,6 @@
   table.year-grid thead th { color: var(--ink-soft); font-weight: 500; font-size: 11px; text-align: right; padding-top: 10px; padding-bottom: 8px; }
   table.year-grid thead th:first-child, table.year-grid thead th:nth-child(2), table.year-grid thead th:nth-child(3) { text-align: left; }
   table.year-grid td.acct-name { font-size: 12.5px; vertical-align: top; padding-top: 8px; max-width: 190px; white-space: normal; }
-  table.year-grid .remove-line { color: var(--rust); cursor: pointer; font-size: 11px; margin-left: 6px; opacity: .55; }
-  table.year-grid .remove-line:hover { opacity: 1; }
   table.year-grid td.currency-cell { vertical-align: top; padding-top: 6px; }
   table.year-grid td.currency-cell select { font-family: inherit; font-size: 11.5px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
   table.year-grid td.type-label { color: var(--ink-soft); font-size: 11px; }
@@ -140,6 +142,7 @@ let state = { countryId: null, year: TODAY.getFullYear(), displayCurrency: null 
 let actuals = {}, projected = {}, rowCurrency = {};
 let rates = {};
 let latestBalance = null;
+let selectedAccounts = new Set();
 
 function fmt(n, currency) {
   const sign = n < 0 ? '-' : '';
@@ -218,6 +221,11 @@ function renderShell() {
         <input type="file" id="importFile" accept=".xlsx,.xls,.csv" />
       </div>
     </div>
+    <div class="bulk-bar" id="bulkBar" style="display:none;">
+      <span id="bulkCount"></span>
+      <button class="btn-danger" id="bulkDeleteBtn">🗑 Eliminar seleccionadas</button>
+      <button class="btn-ghost" id="bulkClearBtn">Cancelar selección</button>
+    </div>
     <div class="bank-panel" id="bankPanel">
       <div class="current">
         <div class="label">Saldo de banco actual</div>
@@ -237,6 +245,7 @@ function renderShell() {
     state.countryId = Number(e.target.value);
     const c = countries.find(x => x.id === state.countryId);
     state.displayCurrency = c?.currency_code || 'USD';
+    selectedAccounts.clear();
     renderShell();
     await loadCategoriesAndAccounts();
     await loadYearData();
@@ -256,6 +265,8 @@ function renderShell() {
   document.getElementById('exportBtn').addEventListener('click', () => downloadWorkbook(true));
   document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
   document.getElementById('importFile').addEventListener('change', handleImport);
+  document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDeleteSelected);
+  document.getElementById('bulkClearBtn').addEventListener('click', () => { selectedAccounts.clear(); document.querySelectorAll('input.acct-select').forEach(cb => cb.checked = false); updateBulkBar(); });
 }
 
 async function loadCategoriesAndAccounts() {
@@ -319,12 +330,24 @@ async function addLine(categoryId) {
   renderGrid();
 }
 
-async function removeLine(accountId) {
-  if (!confirm('¿Quitar esta línea? Los datos ya guardados no se borran, solo deja de aparecer en la cuadrícula.')) return;
-  const { error } = await sb.from('accounts').update({ active: false }).eq('id', accountId);
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const count = selectedAccounts.size;
+  if (count === 0) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  document.getElementById('bulkCount').textContent = `${count} cuenta${count===1?'':'s'} seleccionada${count===1?'':'s'}`;
+}
+
+async function bulkDeleteSelected() {
+  const ids = Array.from(selectedAccounts);
+  if (!ids.length) return;
+  if (!confirm(`¿Quitar ${ids.length} cuenta(s)? Los datos ya guardados no se borran, solo dejan de aparecer en la cuadrícula.`)) return;
+  const { error } = await sb.from('accounts').update({ active: false }).in('id', ids);
   if (error) { alert('Error: ' + error.message); return; }
+  selectedAccounts.clear();
+  updateBulkBar();
   await loadCategoriesAndAccounts();
-  renderGrid();
+  await loadYearData();
 }
 
 async function loadYearData() {
@@ -403,7 +426,15 @@ function renderGrid() {
     });
   });
   gridArea.querySelectorAll('button.add-line').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); addLine(Number(b.dataset.addLine)); }));
-  gridArea.querySelectorAll('.remove-line').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); removeLine(Number(b.dataset.removeLine)); }));
+  gridArea.querySelectorAll('input.acct-select').forEach(cb => {
+    cb.checked = selectedAccounts.has(Number(cb.dataset.accountId));
+    cb.addEventListener('click', (e) => e.stopPropagation());
+    cb.addEventListener('change', () => {
+      const id = Number(cb.dataset.accountId);
+      if (cb.checked) selectedAccounts.add(id); else selectedAccounts.delete(id);
+      updateBulkBar();
+    });
+  });
   gridArea.querySelectorAll('input[type="number"]').forEach(inp => {
     inp.addEventListener('input', () => {
       const catId = inp.closest('table').dataset.categoryTable;
@@ -447,7 +478,7 @@ function acctRowsHtml(a, curOpts) {
     ? `<select class="acct-currency" data-account-id="${a.id}">${curOpts.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}</select>`
     : `<span>${cur}</span>`;
   return `
-    <tr class="row-real"><td class="acct-name" rowspan="3">${a.name}<span class="remove-line" data-remove-line="${a.id}">quitar</span></td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
+    <tr class="row-real"><td class="acct-name" rowspan="3"><input type="checkbox" class="acct-select" data-account-id="${a.id}"/>${a.name}</td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
     <tr class="row-proj"><td class="type-label">Proyectado</td>${monthCells(projVals,'proj-input')}</tr>
     <tr class="row-diff"><td class="type-label">Diferencia</td>${diffCells}</tr>
   `;
