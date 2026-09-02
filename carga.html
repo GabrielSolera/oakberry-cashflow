@@ -44,14 +44,16 @@
   input[type="file"] { display: none; }
   .bulk-bar { display: flex; align-items: center; gap: 12px; background: var(--rust-bg); border: 1px solid var(--rust); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; font-size: 13px; color: var(--rust); }
   .acct-select { margin-right: 8px; accent-color: var(--acai); vertical-align: middle; }
+  .edit-line { color: var(--acai-soft); cursor: pointer; font-size: 12px; margin-left: 6px; opacity: .6; }
+  .edit-line:hover { opacity: 1; }
 
   .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
   .bank-panel .current { flex: 1; min-width: 220px; }
   .bank-panel .current .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
   .bank-panel .current .amount { font-family: 'Fraunces', serif; font-size: 22px; }
   .bank-panel .current .meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
-  .bank-panel input[type="date"], .bank-panel input[type="number"] { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
-  .bank-panel input[type="number"] { width: 160px; }
+  .bank-panel input[type="date"], .bank-panel input.amount-input { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
+  .bank-panel input.amount-input { width: 160px; text-align: left; }
   .bank-panel button.bank-save { background: var(--acai); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
 
   .add-category { margin-bottom: 14px; }
@@ -75,8 +77,8 @@
   tr.row-real td.type-label { color: var(--acai); }
   tr.row-real { background: var(--real-bg); }
   tr.row-proj { background: var(--proj-bg); }
-  table.year-grid input[type="number"] { width: 78px; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
-  table.year-grid input[type="number"]:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
+  table.year-grid input.amount-input { width: 78px; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
+  table.year-grid input.amount-input:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
   .diff-cell { text-align: right; font-size: 11.5px; }
   .diff-cell.pos { color: var(--mint); }
   .diff-cell.neg { color: var(--rust); }
@@ -149,6 +151,25 @@ function fmt(n, currency) {
   const abs = Math.abs(Math.round(n));
   const symbol = currency === 'USD' ? '$' : (currency === 'CRC' ? '₡' : (currency === 'GTQ' ? 'Q' : currency + ' '));
   return sign + symbol + abs.toLocaleString('es-CR');
+}
+function formatInputNumber(n) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '';
+  return Number(n).toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+function parseInputNumber(str) {
+  if (str === null || str === undefined || str === '') return NaN;
+  const cleaned = String(str).trim().replace(/\./g, '').replace(',', '.');
+  return parseFloat(cleaned);
+}
+function attachAmountFormatting(inp) {
+  inp.addEventListener('focus', () => {
+    const n = parseInputNumber(inp.value);
+    inp.value = isNaN(n) ? '' : String(n);
+  });
+  inp.addEventListener('blur', () => {
+    const n = parseInputNumber(inp.value);
+    inp.value = isNaN(n) ? '' : formatInputNumber(n);
+  });
 }
 function getRate(currency, monthKey) {
   if (currency === state.displayCurrency) return 1;
@@ -233,7 +254,7 @@ function renderShell() {
         <div class="meta" id="bankMeta">Sin registrar</div>
       </div>
       <div class="field"><label>Fecha</label><input type="date" id="bankDate" value="${TODAY.toISOString().slice(0,10)}"/></div>
-      <div class="field"><label>Nuevo saldo</label><input type="number" step="0.01" id="bankAmountInput" placeholder="0"/></div>
+      <div class="field"><label>Nuevo saldo</label><input type="text" inputmode="decimal" class="amount-input" id="bankAmountInput" placeholder="0"/></div>
       <button class="bank-save" id="bankSaveBtn">Actualizar saldo</button>
     </div>
     <div class="add-category"><button class="btn-ghost" id="addCategoryBtn">+ Agregar categoría</button></div>
@@ -260,6 +281,7 @@ function renderShell() {
     renderGrid();
   });
   document.getElementById('bankSaveBtn').addEventListener('click', saveBankBalance);
+  attachAmountFormatting(document.getElementById('bankAmountInput'));
   document.getElementById('addCategoryBtn').addEventListener('click', addCategory);
   document.getElementById('templateBtn').addEventListener('click', () => downloadWorkbook(false));
   document.getElementById('exportBtn').addEventListener('click', () => downloadWorkbook(true));
@@ -300,11 +322,11 @@ async function loadBankBalance() {
 async function saveBankBalance() {
   const btn = document.getElementById('bankSaveBtn');
   const dateVal = document.getElementById('bankDate').value;
-  const amountVal = document.getElementById('bankAmountInput').value;
-  if (!amountVal) return;
+  const amountVal = parseInputNumber(document.getElementById('bankAmountInput').value);
+  if (isNaN(amountVal)) return;
   const country = countries.find(c => c.id === state.countryId);
   btn.disabled = true;
-  const { error } = await sb.from('cash_position').insert({ country_id: state.countryId, recorded_at: dateVal, balance: parseFloat(amountVal), currency_code: country.currency_code });
+  const { error } = await sb.from('cash_position').insert({ country_id: state.countryId, recorded_at: dateVal, balance: amountVal, currency_code: country.currency_code });
   btn.disabled = false;
   if (!error) { document.getElementById('bankAmountInput').value = ''; loadBankBalance(); }
   else alert('Error guardando saldo: ' + error.message);
@@ -336,6 +358,15 @@ function updateBulkBar() {
   if (count === 0) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
   document.getElementById('bulkCount').textContent = `${count} cuenta${count===1?'':'s'} seleccionada${count===1?'':'s'}`;
+}
+
+async function editAccountName(accountId, currentName) {
+  const newName = prompt('Nuevo nombre de la cuenta:', currentName);
+  if (!newName || newName.trim() === '' || newName === currentName) return;
+  const { error } = await sb.from('accounts').update({ name: newName.trim() }).eq('id', accountId);
+  if (error) { alert('Error: ' + error.message); return; }
+  await loadCategoriesAndAccounts();
+  renderGrid();
 }
 
 async function bulkDeleteSelected() {
@@ -435,7 +466,9 @@ function renderGrid() {
       updateBulkBar();
     });
   });
-  gridArea.querySelectorAll('input[type="number"]').forEach(inp => {
+  gridArea.querySelectorAll('.edit-line').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); editAccountName(Number(b.dataset.editLine), b.dataset.currentName); }));
+  gridArea.querySelectorAll('input[type="text"].amount-input').forEach(inp => {
+    attachAmountFormatting(inp);
     inp.addEventListener('input', () => {
       const catId = inp.closest('table').dataset.categoryTable;
       updateDiffCell(inp);
@@ -466,7 +499,7 @@ function acctRowsHtml(a, curOpts) {
   const monthCells = (vals, cls) => MONTHS_ES.map((m, i) => {
     const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
     const v = vals[mk];
-    return `<td><input type="number" step="0.01" class="${cls}" placeholder="0" data-account-id="${a.id}" data-month="${mk}" value="${v !== undefined ? v.amount : ''}"/></td>`;
+    return `<td><input type="text" inputmode="decimal" class="${cls} amount-input" placeholder="0" data-account-id="${a.id}" data-month="${mk}" value="${v !== undefined ? formatInputNumber(v.amount) : ''}"/></td>`;
   }).join('');
   const diffCells = MONTHS_ES.map((m,i) => {
     const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
@@ -478,7 +511,7 @@ function acctRowsHtml(a, curOpts) {
     ? `<select class="acct-currency" data-account-id="${a.id}">${curOpts.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}</select>`
     : `<span>${cur}</span>`;
   return `
-    <tr class="row-real"><td class="acct-name" rowspan="3"><input type="checkbox" class="acct-select" data-account-id="${a.id}"/>${a.name}</td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
+    <tr class="row-real"><td class="acct-name" rowspan="3"><input type="checkbox" class="acct-select" data-account-id="${a.id}"/>${a.name}<span class="edit-line" data-edit-line="${a.id}" data-current-name="${a.name.replace(/"/g,'&quot;')}">✎</span></td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
     <tr class="row-proj"><td class="type-label">Proyectado</td>${monthCells(projVals,'proj-input')}</tr>
     <tr class="row-diff"><td class="type-label">Diferencia</td>${diffCells}</tr>
   `;
@@ -495,8 +528,8 @@ function updateDiffCell(inp) {
   if (!cell) return;
   const realInput = table.querySelector(`input.real-input[data-account-id="${accountId}"][data-month="${mk}"]`);
   const projInput = table.querySelector(`input.proj-input[data-account-id="${accountId}"][data-month="${mk}"]`);
-  const r = realInput.value !== '' ? parseFloat(realInput.value) : null;
-  const p = projInput.value !== '' ? parseFloat(projInput.value) : null;
+  const r = realInput.value !== '' ? parseInputNumber(realInput.value) : null;
+  const p = projInput.value !== '' ? parseInputNumber(projInput.value) : null;
   const cur = accountCurrency(accountId);
   if (r !== null && p !== null) {
     const d = r - p;
@@ -513,11 +546,11 @@ function categoryMonthlyTotals(catId) {
     const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
     table.querySelectorAll(`input.real-input[data-month="${mk}"]`).forEach(inp => {
       if (inp.value === '') return;
-      totals.real[i] += convert(parseFloat(inp.value), accountCurrency(inp.dataset.accountId), mk);
+      totals.real[i] += convert(parseInputNumber(inp.value), accountCurrency(inp.dataset.accountId), mk);
     });
     table.querySelectorAll(`input.proj-input[data-month="${mk}"]`).forEach(inp => {
       if (inp.value === '') return;
-      totals.proj[i] += convert(parseFloat(inp.value), accountCurrency(inp.dataset.accountId), mk);
+      totals.proj[i] += convert(parseInputNumber(inp.value), accountCurrency(inp.dataset.accountId), mk);
     });
   });
   return totals;
@@ -672,12 +705,12 @@ document.addEventListener('click', async (e) => {
   document.querySelectorAll('input.real-input').forEach(inp => {
     if (inp.value === '') return;
     const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
-    actualRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: accountCurrency(accountId), is_partial_month: mk === CURRENT_MONTH_KEY });
+    actualRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseInputNumber(inp.value), currency_code: accountCurrency(accountId), is_partial_month: mk === CURRENT_MONTH_KEY });
   });
   document.querySelectorAll('input.proj-input').forEach(inp => {
     if (inp.value === '') return;
     const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
-    projectedRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: accountCurrency(accountId) });
+    projectedRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseInputNumber(inp.value), currency_code: accountCurrency(accountId) });
   });
 
   if (!actualRows.length && !projectedRows.length) { statusEl.textContent = 'No hay valores para guardar'; statusEl.classList.add('err'); btn.disabled = false; return; }
