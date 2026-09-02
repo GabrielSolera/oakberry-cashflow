@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg: #FAF9F6; --ink: #221A2B; --ink-soft: #6B6274;
@@ -25,15 +26,20 @@
   .subtitle { color: var(--ink-soft); font-size: 13.5px; margin-top: 2px; }
   .nav-link { align-self: center; font-size: 13.5px; color: var(--acai); text-decoration: none; }
 
-  main { padding: 24px 40px 120px; max-width: 1360px; }
+  main { padding: 24px 40px 140px; max-width: 1360px; }
 
-  .controls { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
+  .controls { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 20px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 12px; color: var(--ink-soft); }
   .field select { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
   .toggle-group { display: flex; gap: 4px; background: #F0EDE8; padding: 4px; border-radius: 10px; }
   .toggle-group button { border: none; background: transparent; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; }
   .toggle-group button.active { background: var(--card); color: var(--acai); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .spacer { flex: 1; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-ghost { background: var(--bg); border: 1px solid var(--border); color: var(--acai); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-ghost:hover { background: #F0EDE8; }
+  input[type="file"] { display: none; }
 
   .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
   .bank-panel .current { flex: 1; min-width: 220px; }
@@ -44,10 +50,13 @@
   .bank-panel input[type="number"] { width: 160px; }
   .bank-panel button.bank-save { background: var(--acai); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
 
+  .add-category { margin-bottom: 14px; }
+
   section.group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
-  .group-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; }
+  .group-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; gap: 10px; }
   .group-header h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15.5px; margin: 0; }
-  .group-header .hint { font-size: 12px; color: var(--ink-soft); }
+  .group-header .hint { font-size: 12px; color: var(--ink-soft); flex: 1; }
+  .group-header button.add-line { background: var(--mint-bg); color: var(--mint); border: none; padding: 5px 11px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
   .group-body { border-top: 1px solid var(--border); overflow-x: auto; }
   .group-body.collapsed { display: none; }
 
@@ -56,13 +65,12 @@
   table.year-grid thead th { color: var(--ink-soft); font-weight: 500; font-size: 11px; text-align: right; padding-top: 10px; padding-bottom: 8px; }
   table.year-grid thead th:first-child, table.year-grid thead th:nth-child(2), table.year-grid thead th:nth-child(3) { text-align: left; }
   table.year-grid td.acct-name { font-size: 12.5px; vertical-align: top; padding-top: 8px; max-width: 190px; white-space: normal; }
-  table.year-grid td.acct-code { color: var(--ink-soft); font-size: 10.5px; display: block; }
+  table.year-grid .remove-line { color: var(--rust); cursor: pointer; font-size: 11px; margin-left: 6px; opacity: .55; }
+  table.year-grid .remove-line:hover { opacity: 1; }
   table.year-grid td.currency-cell { vertical-align: top; padding-top: 6px; }
   table.year-grid td.currency-cell select { font-family: inherit; font-size: 11.5px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
   table.year-grid td.type-label { color: var(--ink-soft); font-size: 11px; }
   tr.row-real td.type-label { color: var(--acai); }
-  tr.row-proj td.type-label { color: var(--ink-soft); }
-  tr.row-diff td.type-label, tr.row-diff td.diff-cell { color: var(--ink-soft); font-style: normal; }
   tr.row-real { background: var(--real-bg); }
   tr.row-proj { background: var(--proj-bg); }
   table.year-grid input[type="number"] { width: 78px; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
@@ -72,6 +80,13 @@
   .diff-cell.neg { color: var(--rust); }
   tr.subtotal-row td { font-weight: 600; background: #F0EDE8; }
   tr.subtotal-row td.type-label { font-weight: 500; }
+
+  .grand-total { background: var(--acai); color: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; overflow-x: auto; }
+  .grand-total h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15.5px; margin: 0 0 10px; color: #fff; }
+  table.grand-grid { border-collapse: collapse; font-size: 12.5px; color: #fff; min-width: 100%; }
+  table.grand-grid td, table.grand-grid th { padding: 5px 8px; text-align: right; white-space: nowrap; }
+  table.grand-grid th { color: #E7D9E3; font-weight: 500; font-size: 11px; }
+  table.grand-grid td:first-child, table.grand-grid th:first-child { text-align: left; }
 
   .save-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; }
   .save-bar .status { font-size: 13px; color: var(--ink-soft); }
@@ -94,7 +109,7 @@
     <span class="mark"></span>
     <div>
       <h1>Carga anual</h1>
-      <div class="subtitle">Real, proyectado y diferencia por cuenta — un año completo</div>
+      <div class="subtitle">Real, proyectado y diferencia — categorías a tu medida</div>
     </div>
   </div>
   <a class="nav-link" href="index.html">← Volver al resumen</a>
@@ -116,18 +131,14 @@ const SUPABASE_URL = 'https://dwxovleqwqmeqrjiyqyf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eG92bGVxd3FtZXFyaml5cXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDQ0MDksImV4cCI6MjEwMzcyMDQwOX0.b76ZdNVFuG9fK_gQKPtZnNpEykFgv0uGA9B91RsKKgk';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'cashflow' } });
 
-const SECTION_LABELS = { income: 'Ingresos', cogs: 'Costo de ventas', expense: 'Gastos', other_income: 'Otros ingresos', other_expense: 'Otros gastos' };
-const SECTION_ORDER = ['income', 'cogs', 'expense', 'other_income', 'other_expense'];
 const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
 const TODAY = new Date();
 const CURRENT_MONTH_KEY = `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}`;
 
-let countries = [], accounts = [];
+let countries = [], categories = [], accounts = [];
 let state = { countryId: null, year: TODAY.getFullYear(), displayCurrency: null };
-let actuals = {};    // account_id -> { 'YYYY-MM': {amount, currency_code} }
-let projected = {};  // account_id -> { 'YYYY-MM': {amount, currency_code} }
-let rowCurrency = {}; // account_id -> currency_code chosen for this session
-let rates = {};       // currency_code -> { 'YYYY-MM': rate_to_usd }
+let actuals = {}, projected = {}, rowCurrency = {};
+let rates = {};
 let latestBalance = null;
 
 function fmt(n, currency) {
@@ -136,7 +147,6 @@ function fmt(n, currency) {
   const symbol = currency === 'USD' ? '$' : (currency === 'CRC' ? '₡' : (currency === 'GTQ' ? 'Q' : currency + ' '));
   return sign + symbol + abs.toLocaleString('es-CR');
 }
-
 function getRate(currency, monthKey) {
   if (currency === state.displayCurrency) return 1;
   const table = rates[currency] || {};
@@ -146,13 +156,15 @@ function getRate(currency, monthKey) {
   if (past) return table[past];
   return keys.length ? table[keys[0]] : 1;
 }
-
 function convert(amount, fromCurrency, monthKey) {
   if (fromCurrency === state.displayCurrency) return amount;
-  const fromRate = getRate(fromCurrency, monthKey);   // units of `fromCurrency` per 1 USD
+  const fromRate = getRate(fromCurrency, monthKey);
   const toRate = getRate(state.displayCurrency, monthKey);
-  const usd = amount / fromRate;
-  return usd * toRate;
+  return (amount / fromRate) * toRate;
+}
+function currencyOptionsFor(country) {
+  if (!country) return ['USD'];
+  return country.currency_code === 'USD' ? ['USD'] : [country.currency_code, 'USD'];
 }
 
 async function init() {
@@ -160,40 +172,27 @@ async function init() {
   if (cErr) { renderError(cErr); return; }
   countries = countryRows;
 
-  const { data: acctRows, error: aErr } = await sb.from('accounts')
-    .select('id,code,name,section,default_currency_code').eq('active', true).order('section').order('name');
-  if (aErr) { renderError(aErr); return; }
-  accounts = acctRows;
-
-  const { data: rateRows, error: rErr } = await sb.from('exchange_rates').select('currency_code,month,rate_to_usd');
-  if (!rErr) {
-    rateRows.forEach(r => {
-      const mk = r.month.slice(0, 7);
-      if (!rates[r.currency_code]) rates[r.currency_code] = {};
-      rates[r.currency_code][mk] = Number(r.rate_to_usd);
-    });
-  }
+  const { data: rateRows } = await sb.from('exchange_rates').select('currency_code,month,rate_to_usd');
+  (rateRows || []).forEach(r => {
+    const mk = r.month.slice(0,7);
+    if (!rates[r.currency_code]) rates[r.currency_code] = {};
+    rates[r.currency_code][mk] = Number(r.rate_to_usd);
+  });
 
   state.countryId = countries[0]?.id;
   const country = countries.find(c => c.id === state.countryId);
   state.displayCurrency = country?.currency_code || 'CRC';
 
   renderShell();
+  await loadCategoriesAndAccounts();
   await loadYearData();
   await loadBankBalance();
 }
 
-function renderError(err) {
-  document.getElementById('main').innerHTML = `<div class="empty-state">No se pudo cargar: ${err.message || err}</div>`;
-}
-
-function currencyOptionsFor(country) {
-  if (!country) return ['USD'];
-  return country.currency_code === 'USD' ? ['USD'] : [country.currency_code, 'USD'];
-}
+function renderError(err) { document.getElementById('main').innerHTML = `<div class="empty-state">No se pudo cargar: ${err.message || err}</div>`; }
 
 function renderShell() {
-  const years = [TODAY.getFullYear() - 1, TODAY.getFullYear(), TODAY.getFullYear() + 1];
+  const years = [TODAY.getFullYear()-1, TODAY.getFullYear(), TODAY.getFullYear()+1];
   const country = countries.find(c => c.id === state.countryId);
   const curOpts = currencyOptionsFor(country);
 
@@ -208,9 +207,16 @@ function renderShell() {
       ${curOpts.length > 1 ? `
       <div class="field"><label>Ver totales en</label>
         <div class="toggle-group" id="currencyToggle">
-          ${curOpts.map((c,i) => `<button data-cur="${c}" class="${c===state.displayCurrency?'active':''}">${c}</button>`).join('')}
+          ${curOpts.map(c => `<button data-cur="${c}" class="${c===state.displayCurrency?'active':''}">${c}</button>`).join('')}
         </div>
       </div>` : ''}
+      <div class="spacer"></div>
+      <div class="btn-row">
+        <button class="btn-ghost" id="templateBtn">↓ Plantilla</button>
+        <button class="btn-ghost" id="exportBtn">↓ Descargar Excel</button>
+        <button class="btn-ghost" id="importBtn">↑ Importar datos</button>
+        <input type="file" id="importFile" accept=".xlsx,.xls,.csv" />
+      </div>
     </div>
     <div class="bank-panel" id="bankPanel">
       <div class="current">
@@ -222,21 +228,21 @@ function renderShell() {
       <div class="field"><label>Nuevo saldo</label><input type="number" step="0.01" id="bankAmountInput" placeholder="0"/></div>
       <button class="bank-save" id="bankSaveBtn">Actualizar saldo</button>
     </div>
+    <div class="add-category"><button class="btn-ghost" id="addCategoryBtn">+ Agregar categoría</button></div>
     <div id="gridArea"></div>
+    <div id="grandTotalArea"></div>
   `;
 
-  document.getElementById('countrySelect').addEventListener('change', e => {
+  document.getElementById('countrySelect').addEventListener('change', async e => {
     state.countryId = Number(e.target.value);
     const c = countries.find(x => x.id === state.countryId);
     state.displayCurrency = c?.currency_code || 'USD';
     renderShell();
-    loadYearData();
-    loadBankBalance();
+    await loadCategoriesAndAccounts();
+    await loadYearData();
+    await loadBankBalance();
   });
-  document.getElementById('yearSelect').addEventListener('change', e => {
-    state.year = Number(e.target.value);
-    loadYearData();
-  });
+  document.getElementById('yearSelect').addEventListener('change', e => { state.year = Number(e.target.value); loadYearData(); });
   const toggle = document.getElementById('currencyToggle');
   if (toggle) toggle.addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
@@ -245,6 +251,25 @@ function renderShell() {
     renderGrid();
   });
   document.getElementById('bankSaveBtn').addEventListener('click', saveBankBalance);
+  document.getElementById('addCategoryBtn').addEventListener('click', addCategory);
+  document.getElementById('templateBtn').addEventListener('click', () => downloadWorkbook(false));
+  document.getElementById('exportBtn').addEventListener('click', () => downloadWorkbook(true));
+  document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', handleImport);
+}
+
+async function loadCategoriesAndAccounts() {
+  const { data: catRows, error: catErr } = await sb.from('categories').select('id,name,sort_order').eq('country_id', state.countryId).order('sort_order');
+  if (catErr) { renderError(catErr); return; }
+  categories = catRows;
+
+  if (!categories.length) { accounts = []; renderGrid(); return; }
+  const catIds = categories.map(c => c.id);
+  const { data: acctRows, error: aErr } = await sb.from('accounts')
+    .select('id,name,default_currency_code,category_id')
+    .eq('active', true).in('category_id', catIds).order('name');
+  if (aErr) { renderError(aErr); return; }
+  accounts = acctRows;
 }
 
 async function loadBankBalance() {
@@ -268,16 +293,38 @@ async function saveBankBalance() {
   if (!amountVal) return;
   const country = countries.find(c => c.id === state.countryId);
   btn.disabled = true;
-  const { error } = await sb.from('cash_position').insert({
-    country_id: state.countryId, recorded_at: dateVal, balance: parseFloat(amountVal), currency_code: country.currency_code
-  });
+  const { error } = await sb.from('cash_position').insert({ country_id: state.countryId, recorded_at: dateVal, balance: parseFloat(amountVal), currency_code: country.currency_code });
   btn.disabled = false;
-  if (!error) {
-    document.getElementById('bankAmountInput').value = '';
-    loadBankBalance();
-  } else {
-    alert('Error guardando saldo: ' + error.message);
-  }
+  if (!error) { document.getElementById('bankAmountInput').value = ''; loadBankBalance(); }
+  else alert('Error guardando saldo: ' + error.message);
+}
+
+async function addCategory() {
+  const name = prompt('Nombre de la nueva categoría:');
+  if (!name) return;
+  const maxOrder = categories.reduce((m,c) => Math.max(m, c.sort_order), 0);
+  const { error } = await sb.from('categories').insert({ country_id: state.countryId, name, sort_order: maxOrder + 1 });
+  if (error) { alert('Error: ' + error.message); return; }
+  await loadCategoriesAndAccounts();
+  await loadYearData();
+}
+
+async function addLine(categoryId) {
+  const name = prompt('Nombre de la nueva línea/cuenta:');
+  if (!name) return;
+  const country = countries.find(c => c.id === state.countryId);
+  const { error } = await sb.from('accounts').insert({ name, category_id: categoryId, active: true, default_currency_code: country.currency_code });
+  if (error) { alert('Error: ' + error.message); return; }
+  await loadCategoriesAndAccounts();
+  renderGrid();
+}
+
+async function removeLine(accountId) {
+  if (!confirm('¿Quitar esta línea? Los datos ya guardados no se borran, solo deja de aparecer en la cuadrícula.')) return;
+  const { error } = await sb.from('accounts').update({ active: false }).eq('id', accountId);
+  if (error) { alert('Error: ' + error.message); return; }
+  await loadCategoriesAndAccounts();
+  renderGrid();
 }
 
 async function loadYearData() {
@@ -285,9 +332,12 @@ async function loadYearData() {
   gridArea.innerHTML = `<div class="loading">Cargando datos del año…</div>`;
   document.getElementById('saveBar').style.display = 'none';
 
-  const start = `${state.year}-01-01`;
-  const end = `${state.year}-12-31`;
+  if (!categories.length) {
+    gridArea.innerHTML = `<div class="empty-state">Este país todavía no tiene categorías. Usa "+ Agregar categoría" para empezar.</div>`;
+    return;
+  }
 
+  const start = `${state.year}-01-01`, end = `${state.year}-12-31`;
   const [{ data: actRows, error: actErr }, { data: projRows, error: projErr }] = await Promise.all([
     sb.from('cash_flow_actual').select('account_id,month,amount,currency_code').eq('country_id', state.countryId).gte('month', start).lte('month', end),
     sb.from('cash_flow_projected').select('account_id,month,amount,currency_code').eq('country_id', state.countryId).gte('month', start).lte('month', end)
@@ -315,25 +365,27 @@ function renderGrid() {
   const gridArea = document.getElementById('gridArea');
   const country = countries.find(c => c.id === state.countryId);
   const curOpts = currencyOptionsFor(country);
-  const bySection = {}; SECTION_ORDER.forEach(s => bySection[s] = []);
-  accounts.forEach(a => { if (bySection[a.section]) bySection[a.section].push(a); });
 
-  gridArea.innerHTML = SECTION_ORDER.filter(s => bySection[s].length).map(section => `
-    <section class="group" data-section="${section}">
+  if (!categories.length) {
+    gridArea.innerHTML = `<div class="empty-state">Este país todavía no tiene categorías. Usa "+ Agregar categoría" para empezar.</div>`;
+    document.getElementById('grandTotalArea').innerHTML = '';
+    return;
+  }
+
+  gridArea.innerHTML = categories.map(cat => {
+    const catAccounts = accounts.filter(a => a.category_id === cat.id);
+    return `
+    <section class="group" data-category-id="${cat.id}">
       <div class="group-header">
-        <h2>${SECTION_LABELS[section]}</h2>
-        <span class="hint">${bySection[section].length} cuentas — clic para ${'expandir/contraer'}</span>
+        <h2>${cat.name}</h2>
+        <span class="hint">${catAccounts.length} línea${catAccounts.length===1?'':'s'}</span>
+        <button class="add-line" data-add-line="${cat.id}">+ Agregar línea</button>
       </div>
       <div class="group-body collapsed">
-        <table class="year-grid" data-section-table="${section}">
-          <thead>
-            <tr>
-              <th>Cuenta</th><th>Moneda</th><th></th>
-              ${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}
-            </tr>
-          </thead>
+        <table class="year-grid" data-category-table="${cat.id}">
+          <thead><tr><th>Cuenta</th><th>Moneda</th><th></th>${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}</tr></thead>
           <tbody>
-            ${bySection[section].map(a => acctRowsHtml(a, curOpts)).join('')}
+            ${catAccounts.map(a => acctRowsHtml(a, curOpts)).join('')}
             <tr class="subtotal-row row-real"><td colspan="2"></td><td class="type-label">Total real</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell" data-kind="real" data-mi="${i}"></td>`).join('')}</tr>
             <tr class="subtotal-row row-proj"><td colspan="2"></td><td class="type-label">Total proyectado</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell" data-kind="proj" data-mi="${i}"></td>`).join('')}</tr>
             <tr class="subtotal-row row-diff"><td colspan="2"></td><td class="type-label">Diferencia</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell diff-cell" data-kind="diff" data-mi="${i}"></td>`).join('')}</tr>
@@ -341,27 +393,37 @@ function renderGrid() {
         </table>
       </div>
     </section>
-  `).join('');
+  `; }).join('');
 
   gridArea.querySelectorAll('.group-header').forEach(h => {
-    h.addEventListener('click', () => { h.nextElementSibling.classList.toggle('collapsed'); recalcSection(h.nextElementSibling.querySelector('table').dataset.sectionTable); });
+    h.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      h.nextElementSibling.classList.toggle('collapsed');
+      recalcCategory(h.nextElementSibling.querySelector('table').dataset.categoryTable);
+    });
   });
+  gridArea.querySelectorAll('button.add-line').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); addLine(Number(b.dataset.addLine)); }));
+  gridArea.querySelectorAll('.remove-line').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); removeLine(Number(b.dataset.removeLine)); }));
   gridArea.querySelectorAll('input[type="number"]').forEach(inp => {
     inp.addEventListener('input', () => {
-      const section = inp.closest('table').dataset.sectionTable;
+      const catId = inp.closest('table').dataset.categoryTable;
       updateDiffCell(inp);
-      recalcSection(section);
+      recalcCategory(catId);
+      recalcGrandTotal();
     });
   });
   gridArea.querySelectorAll('select.acct-currency').forEach(sel => {
     sel.addEventListener('change', () => {
       rowCurrency[sel.dataset.accountId] = sel.value;
-      const section = sel.closest('table').dataset.sectionTable;
-      recalcSection(section);
+      const catId = sel.closest('table').dataset.categoryTable;
+      recalcCategory(catId); recalcGrandTotal();
     });
   });
 
-  SECTION_ORDER.forEach(s => { if (bySection[s].length) recalcSection(s); });
+  categories.forEach(cat => recalcCategory(String(cat.id)));
+  renderGrandTotalShell();
+  recalcGrandTotal();
+
   document.getElementById('saveBar').style.display = 'flex';
   document.getElementById('saveStatus').textContent = '';
   document.getElementById('saveStatus').className = 'status';
@@ -369,8 +431,7 @@ function renderGrid() {
 
 function acctRowsHtml(a, curOpts) {
   const cur = rowCurrency[a.id] || a.default_currency_code || curOpts[0];
-  const realVals = actuals[a.id] || {};
-  const projVals = projected[a.id] || {};
+  const realVals = actuals[a.id] || {}, projVals = projected[a.id] || {};
   const monthCells = (vals, cls) => MONTHS_ES.map((m, i) => {
     const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
     const v = vals[mk];
@@ -386,63 +447,189 @@ function acctRowsHtml(a, curOpts) {
     ? `<select class="acct-currency" data-account-id="${a.id}">${curOpts.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}</select>`
     : `<span>${cur}</span>`;
   return `
-    <tr class="row-real"><td class="acct-name" rowspan="3"><span class="acct-code">${a.code||''}</span>${a.name}</td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
+    <tr class="row-real"><td class="acct-name" rowspan="3">${a.name}<span class="remove-line" data-remove-line="${a.id}">quitar</span></td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
     <tr class="row-proj"><td class="type-label">Proyectado</td>${monthCells(projVals,'proj-input')}</tr>
     <tr class="row-diff"><td class="type-label">Diferencia</td>${diffCells}</tr>
   `;
 }
 
+function accountCurrency(accountId) {
+  return rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
+}
+
 function updateDiffCell(inp) {
   const accountId = inp.dataset.accountId, mk = inp.dataset.month;
-  const row3 = inp.closest('table').querySelector(`.diff-cell[data-account-id="${accountId}"][data-month="${mk}"]`);
-  if (!row3) return;
   const table = inp.closest('table');
+  const cell = table.querySelector(`.diff-cell[data-account-id="${accountId}"][data-month="${mk}"]`);
+  if (!cell) return;
   const realInput = table.querySelector(`input.real-input[data-account-id="${accountId}"][data-month="${mk}"]`);
   const projInput = table.querySelector(`input.proj-input[data-account-id="${accountId}"][data-month="${mk}"]`);
   const r = realInput.value !== '' ? parseFloat(realInput.value) : null;
   const p = projInput.value !== '' ? parseFloat(projInput.value) : null;
-  const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
+  const cur = accountCurrency(accountId);
   if (r !== null && p !== null) {
     const d = r - p;
-    row3.textContent = fmt(d, cur);
-    row3.classList.toggle('pos', d >= 0);
-    row3.classList.toggle('neg', d < 0);
-  } else {
-    row3.textContent = '—';
-    row3.classList.remove('pos','neg');
-  }
+    cell.textContent = fmt(d, cur);
+    cell.classList.toggle('pos', d >= 0); cell.classList.toggle('neg', d < 0);
+  } else { cell.textContent = '—'; cell.classList.remove('pos','neg'); }
 }
 
-function recalcSection(section) {
-  const table = document.querySelector(`table[data-section-table="${section}"]`);
-  if (!table) return;
+function categoryMonthlyTotals(catId) {
+  const table = document.querySelector(`table[data-category-table="${catId}"]`);
+  const totals = { real: Array(12).fill(0), proj: Array(12).fill(0) };
+  if (!table) return totals;
   MONTHS_ES.forEach((m, i) => {
     const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
-    let realSum = 0, projSum = 0;
     table.querySelectorAll(`input.real-input[data-month="${mk}"]`).forEach(inp => {
       if (inp.value === '') return;
-      const accountId = inp.dataset.accountId;
-      const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
-      realSum += convert(parseFloat(inp.value), cur, mk);
+      totals.real[i] += convert(parseFloat(inp.value), accountCurrency(inp.dataset.accountId), mk);
     });
     table.querySelectorAll(`input.proj-input[data-month="${mk}"]`).forEach(inp => {
       if (inp.value === '') return;
-      const accountId = inp.dataset.accountId;
-      const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
-      projSum += convert(parseFloat(inp.value), cur, mk);
+      totals.proj[i] += convert(parseFloat(inp.value), accountCurrency(inp.dataset.accountId), mk);
     });
+  });
+  return totals;
+}
+
+function recalcCategory(catId) {
+  const table = document.querySelector(`table[data-category-table="${catId}"]`);
+  if (!table) return;
+  const totals = categoryMonthlyTotals(catId);
+  MONTHS_ES.forEach((m, i) => {
     const realCell = table.querySelector(`.subtotal-cell[data-kind="real"][data-mi="${i}"]`);
     const projCell = table.querySelector(`.subtotal-cell[data-kind="proj"][data-mi="${i}"]`);
     const diffCell = table.querySelector(`.subtotal-cell[data-kind="diff"][data-mi="${i}"]`);
-    if (realCell) realCell.textContent = fmt(realSum, state.displayCurrency);
-    if (projCell) projCell.textContent = fmt(projSum, state.displayCurrency);
+    if (realCell) realCell.textContent = fmt(totals.real[i], state.displayCurrency);
+    if (projCell) projCell.textContent = fmt(totals.proj[i], state.displayCurrency);
     if (diffCell) {
-      const d = realSum - projSum;
+      const d = totals.real[i] - totals.proj[i];
       diffCell.textContent = fmt(d, state.displayCurrency);
-      diffCell.classList.toggle('pos', d >= 0);
-      diffCell.classList.toggle('neg', d < 0);
+      diffCell.classList.toggle('pos', d >= 0); diffCell.classList.toggle('neg', d < 0);
     }
   });
+}
+
+function renderGrandTotalShell() {
+  document.getElementById('grandTotalArea').innerHTML = `
+    <div class="grand-total">
+      <h2>Total general y flujo acumulado</h2>
+      <table class="grand-grid">
+        <thead><tr><th></th>${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}</tr></thead>
+        <tbody>
+          <tr><td>Total real</td>${MONTHS_ES.map((m,i) => `<td data-grand="real" data-mi="${i}"></td>`).join('')}</tr>
+          <tr><td>Total proyectado</td>${MONTHS_ES.map((m,i) => `<td data-grand="proj" data-mi="${i}"></td>`).join('')}</tr>
+          <tr><td>Flujo acumulado (real)</td>${MONTHS_ES.map((m,i) => `<td data-grand="cum" data-mi="${i}"></td>`).join('')}</tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function recalcGrandTotal() {
+  const realTotals = Array(12).fill(0), projTotals = Array(12).fill(0);
+  categories.forEach(cat => {
+    const t = categoryMonthlyTotals(cat.id);
+    t.real.forEach((v,i) => realTotals[i] += v);
+    t.proj.forEach((v,i) => projTotals[i] += v);
+  });
+  let cum = 0;
+  MONTHS_ES.forEach((m,i) => {
+    cum += realTotals[i];
+    const realCell = document.querySelector(`[data-grand="real"][data-mi="${i}"]`);
+    const projCell = document.querySelector(`[data-grand="proj"][data-mi="${i}"]`);
+    const cumCell = document.querySelector(`[data-grand="cum"][data-mi="${i}"]`);
+    if (realCell) realCell.textContent = fmt(realTotals[i], state.displayCurrency);
+    if (projCell) projCell.textContent = fmt(projTotals[i], state.displayCurrency);
+    if (cumCell) cumCell.textContent = fmt(cum, state.displayCurrency);
+  });
+}
+
+// ---- Import / Export ----
+function downloadWorkbook(withData) {
+  const rows = [];
+  categories.forEach(cat => {
+    accounts.filter(a => a.category_id === cat.id).forEach(a => {
+      const cur = rowCurrency[a.id] || a.default_currency_code;
+      ['Real','Proyectado'].forEach(tipo => {
+        const row = { Categoria: cat.name, Cuenta: a.name, Moneda: cur, Tipo: tipo, Año: state.year };
+        MONTHS_ES.forEach((m, i) => {
+          const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
+          const src = tipo === 'Real' ? actuals[a.id] : projected[a.id];
+          row[m] = withData && src && src[mk] !== undefined ? src[mk].amount : '';
+        });
+        rows.push(row);
+      });
+    });
+  });
+  const country = countries.find(c => c.id === state.countryId);
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Flujo de caja');
+  XLSX.writeFile(wb, `oakberry-flujo-${country?.name || ''}-${state.year}${withData ? '' : '-plantilla'}.xlsx`);
+}
+
+async function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('saveStatus');
+  statusEl.textContent = 'Leyendo archivo…'; statusEl.className = 'status';
+
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws);
+
+  const country = countries.find(c => c.id === state.countryId);
+  const catCache = {}; categories.forEach(c => catCache[c.name] = c.id);
+  const acctCache = {}; accounts.forEach(a => acctCache[`${a.category_id}::${a.name}`] = a);
+
+  const actualRows = [], projectedRows = [];
+  let maxOrder = categories.reduce((m,c) => Math.max(m, c.sort_order), 0);
+
+  for (const row of rows) {
+    const catName = String(row['Categoria'] || '').trim();
+    const acctName = String(row['Cuenta'] || '').trim();
+    const currency = String(row['Moneda'] || country.currency_code).trim();
+    const tipo = String(row['Tipo'] || '').trim();
+    const year = Number(row['Año']) || state.year;
+    if (!catName || !acctName || !tipo) continue;
+
+    let catId = catCache[catName];
+    if (!catId) {
+      const { data, error } = await sb.from('categories').insert({ country_id: state.countryId, name: catName, sort_order: ++maxOrder }).select().single();
+      if (error) continue;
+      catId = data.id; catCache[catName] = catId;
+      categories.push(data);
+    }
+    let acct = acctCache[`${catId}::${acctName}`];
+    if (!acct) {
+      const { data, error } = await sb.from('accounts').insert({ name: acctName, category_id: catId, active: true, default_currency_code: currency }).select().single();
+      if (error) continue;
+      acct = data; acctCache[`${catId}::${acctName}`] = acct;
+      accounts.push(acct);
+    }
+
+    MONTHS_ES.forEach((m, i) => {
+      const val = row[m];
+      if (val === undefined || val === '' || val === null) return;
+      const mk = `${year}-${String(i+1).padStart(2,'0')}`;
+      const entry = { account_id: acct.id, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(val), currency_code: currency };
+      if (tipo === 'Real') { entry.is_partial_month = mk === CURRENT_MONTH_KEY; actualRows.push(entry); }
+      else if (tipo === 'Proyectado') projectedRows.push(entry);
+    });
+  }
+
+  let err = null;
+  if (actualRows.length) { const { error } = await sb.from('cash_flow_actual').upsert(actualRows, { onConflict: 'account_id,country_id,month' }); if (error) err = error; }
+  if (!err && projectedRows.length) { const { error } = await sb.from('cash_flow_projected').upsert(projectedRows, { onConflict: 'account_id,country_id,month' }); if (error) err = error; }
+
+  e.target.value = '';
+  if (err) { statusEl.textContent = 'Error importando: ' + err.message; statusEl.classList.add('err'); return; }
+  statusEl.textContent = `Importado ✓ ${actualRows.length + projectedRows.length} valores`; statusEl.classList.add('ok');
+  document.getElementById('saveBar').style.display = 'flex';
+  await loadCategoriesAndAccounts();
+  await loadYearData();
 }
 
 document.addEventListener('click', async (e) => {
@@ -454,29 +641,19 @@ document.addEventListener('click', async (e) => {
   document.querySelectorAll('input.real-input').forEach(inp => {
     if (inp.value === '') return;
     const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
-    const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code;
-    actualRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: cur, is_partial_month: mk === CURRENT_MONTH_KEY });
+    actualRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: accountCurrency(accountId), is_partial_month: mk === CURRENT_MONTH_KEY });
   });
   document.querySelectorAll('input.proj-input').forEach(inp => {
     if (inp.value === '') return;
     const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
-    const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code;
-    projectedRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: cur });
+    projectedRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: accountCurrency(accountId) });
   });
 
-  if (!actualRows.length && !projectedRows.length) {
-    statusEl.textContent = 'No hay valores para guardar'; statusEl.classList.add('err'); btn.disabled = false; return;
-  }
+  if (!actualRows.length && !projectedRows.length) { statusEl.textContent = 'No hay valores para guardar'; statusEl.classList.add('err'); btn.disabled = false; return; }
 
   let err = null;
-  if (actualRows.length) {
-    const { error } = await sb.from('cash_flow_actual').upsert(actualRows, { onConflict: 'account_id,country_id,month' });
-    if (error) err = error;
-  }
-  if (!err && projectedRows.length) {
-    const { error } = await sb.from('cash_flow_projected').upsert(projectedRows, { onConflict: 'account_id,country_id,month' });
-    if (error) err = error;
-  }
+  if (actualRows.length) { const { error } = await sb.from('cash_flow_actual').upsert(actualRows, { onConflict: 'account_id,country_id,month' }); if (error) err = error; }
+  if (!err && projectedRows.length) { const { error } = await sb.from('cash_flow_projected').upsert(projectedRows, { onConflict: 'account_id,country_id,month' }); if (error) err = error; }
   btn.disabled = false;
   if (err) { statusEl.textContent = 'Error: ' + err.message; statusEl.classList.add('err'); }
   else { statusEl.textContent = `Guardado ✓ ${actualRows.length + projectedRows.length} valores`; statusEl.classList.add('ok'); }
