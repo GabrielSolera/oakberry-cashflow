@@ -25,22 +25,25 @@
   .header-right { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .nav-link { font-size: 14px; color: var(--acai); text-decoration: none; }
   nav.countries { display: flex; gap: 4px; background: #F0EDE8; padding: 4px; border-radius: 10px; }
-  nav.countries button, .toggle-group button { border: none; background: transparent; padding: 8px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; transition: background .15s ease, color .15s ease; }
+  nav.countries button, .toggle-group button { border: none; background: transparent; padding: 8px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; }
   nav.countries button.active, .toggle-group button.active { background: var(--card); color: var(--acai); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
   nav.countries button:disabled { opacity: .4; cursor: default; }
   .toggle-group { display: flex; gap: 4px; background: #F0EDE8; padding: 4px; border-radius: 10px; }
 
   main { padding: 32px 48px 64px; max-width: 1180px; }
 
-  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
-  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 20px; }
-  .kpi .label { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; }
-  .kpi .value { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 32px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 18px; }
+  .kpi .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
+  .kpi .value { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
   .kpi .value.neg { color: var(--rust); }
   .kpi .value.pos { color: var(--mint); }
-  .kpi .sub { font-size: 11.5px; color: var(--ink-soft); margin-top: 6px; }
+  .kpi .sub { font-size: 11px; color: var(--ink-soft); margin-top: 6px; }
+  .kpi.total { background: var(--acai); border-color: var(--acai); }
+  .kpi.total .label { color: #E7D9E3; }
+  .kpi.total .value { color: #fff; }
 
-  section.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px 26px 8px; margin-bottom: 24px; }
+  section.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px 26px 8px; margin-bottom: 24px; overflow-x: auto; }
   section.panel h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; margin: 0 0 18px; }
 
   .chart-wrap { overflow-x: auto; }
@@ -69,7 +72,6 @@
 
   @media (max-width: 760px) {
     header, main, footer { padding-left: 20px; padding-right: 20px; }
-    .kpis { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -92,7 +94,7 @@
 
 <main id="main"><div class="loading">Cargando datos…</div></main>
 
-<footer>Fuente: catálogo contable QuickBooks · datos reales cargados hasta agosto 2026 (parcial)</footer>
+<footer>Categorías y cuentas definidas por país · datos reales y proyectados capturados en la carga anual</footer>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -103,8 +105,8 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'cashfl
 
 const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
 
-let countries = [], accounts = {};
-let actualsByCountry = {}, projectedByCountry = {};
+let countries = [], categoriesByCountry = {}, accountsById = {};
+let actualRows = [], projectedRows = [];
 let rates = {};
 let bankByCountry = {};
 let activeCountryId = null;
@@ -116,7 +118,6 @@ function fmt(n, currency) {
   const symbol = currency === 'USD' ? '$' : (currency === 'CRC' ? '₡' : (currency === 'GTQ' ? 'Q' : currency + ' '));
   return sign + symbol + abs.toLocaleString('es-CR');
 }
-
 function getRate(currency, monthKey) {
   if (currency === displayCurrency) return 1;
   const table = rates[currency] || {};
@@ -128,9 +129,7 @@ function getRate(currency, monthKey) {
 }
 function convert(amount, fromCurrency, monthKey) {
   if (fromCurrency === displayCurrency) return amount;
-  const fromRate = getRate(fromCurrency, monthKey);
-  const toRate = getRate(displayCurrency, monthKey);
-  return (amount / fromRate) * toRate;
+  return (amount / getRate(fromCurrency, monthKey)) * getRate(displayCurrency, monthKey);
 }
 function currencyOptionsFor(country) {
   if (!country) return ['USD'];
@@ -142,9 +141,14 @@ async function load() {
   if (cErr) { renderError(cErr); return; }
   countries = countryRows;
 
-  const { data: acctRows, error: acErr } = await sb.from('accounts').select('id,section,default_currency_code');
-  if (acErr) { renderError(acErr); return; }
-  acctRows.forEach(a => accounts[a.id] = a);
+  const { data: catRows, error: catErr } = await sb.from('categories').select('id,country_id,name,sort_order').order('sort_order');
+  if (catErr) { renderError(catErr); return; }
+  categoriesByCountry = {};
+  catRows.forEach(c => { if (!categoriesByCountry[c.country_id]) categoriesByCountry[c.country_id] = []; categoriesByCountry[c.country_id].push(c); });
+
+  const { data: acctRows, error: aErr } = await sb.from('accounts').select('id,name,category_id,default_currency_code').eq('active', true);
+  if (aErr) { renderError(aErr); return; }
+  accountsById = {}; acctRows.forEach(a => accountsById[a.id] = a);
 
   const { data: rateRows } = await sb.from('exchange_rates').select('currency_code,month,rate_to_usd');
   (rateRows || []).forEach(r => {
@@ -153,39 +157,25 @@ async function load() {
     rates[r.currency_code][mk] = Number(r.rate_to_usd);
   });
 
-  const [{ data: actRows, error: aErr }, { data: projRows, error: pErr }] = await Promise.all([
+  const [{ data: ar, error: aErr2 }, { data: pr, error: pErr2 }] = await Promise.all([
     sb.from('cash_flow_actual').select('amount,month,is_partial_month,country_id,account_id,currency_code'),
     sb.from('cash_flow_projected').select('amount,month,country_id,account_id,currency_code')
   ]);
-  if (aErr || pErr) { renderError(aErr || pErr); return; }
-
-  actualsByCountry = {}; projectedByCountry = {};
-  for (const c of countries) { actualsByCountry[c.id] = []; projectedByCountry[c.id] = []; }
-  (actRows || []).forEach(r => {
-    if (!actualsByCountry[r.country_id]) actualsByCountry[r.country_id] = [];
-    actualsByCountry[r.country_id].push({ month: r.month.slice(0,7), amount: Number(r.amount), section: accounts[r.account_id]?.section, partial: r.is_partial_month, currency: r.currency_code || accounts[r.account_id]?.default_currency_code });
-  });
-  (projRows || []).forEach(r => {
-    if (!projectedByCountry[r.country_id]) projectedByCountry[r.country_id] = [];
-    projectedByCountry[r.country_id].push({ month: r.month.slice(0,7), amount: Number(r.amount), section: accounts[r.account_id]?.section, currency: r.currency_code || accounts[r.account_id]?.default_currency_code });
-  });
+  if (aErr2 || pErr2) { renderError(aErr2 || pErr2); return; }
+  actualRows = ar || []; projectedRows = pr || [];
 
   const { data: bankRows } = await sb.from('cash_position').select('country_id,balance,currency_code,recorded_at').order('recorded_at', { ascending: false });
   bankByCountry = {};
   (bankRows || []).forEach(r => { if (!bankByCountry[r.country_id]) bankByCountry[r.country_id] = r; });
 
-  activeCountryId = countries.find(c => actualsByCountry[c.id]?.length)?.id ?? countries[0]?.id;
+  activeCountryId = countries.find(c => actualRows.some(r => r.country_id === c.id))?.id ?? countries[0]?.id;
   const country = countries.find(c => c.id === activeCountryId);
   displayCurrency = country?.currency_code || 'CRC';
 
-  renderNav();
-  renderCurrencyToggle();
-  renderCountry(activeCountryId);
+  renderNav(); renderCurrencyToggle(); renderCountry(activeCountryId);
 }
 
-function renderError(err) {
-  document.getElementById('main').innerHTML = `<div class="empty-state"><div class="big">No se pudo cargar la información</div><div>${err.message || err}</div></div>`;
-}
+function renderError(err) { document.getElementById('main').innerHTML = `<div class="empty-state"><div class="big">No se pudo cargar la información</div><div>${err.message || err}</div></div>`; }
 
 function renderNav() {
   const nav = document.getElementById('countryNav');
@@ -213,130 +203,119 @@ function renderCurrencyToggle() {
   document.getElementById('curToggle').addEventListener('click', e => {
     const btn = e.target.closest('button'); if (!btn) return;
     displayCurrency = btn.dataset.cur;
-    renderCurrencyToggle();
-    renderCountry(activeCountryId);
+    renderCurrencyToggle(); renderCountry(activeCountryId);
   });
-}
-
-function aggregateByMonth(rows) {
-  const monthMap = {};
-  for (const r of rows) {
-    if (!monthMap[r.month]) monthMap[r.month] = { income: 0, cogs: 0, expense: 0, other_income: 0, other_expense: 0, partial: false };
-    const bucket = monthMap[r.month];
-    const converted = convert(r.amount, r.currency || displayCurrency, r.month);
-    if (r.section === 'income') bucket.income += converted;
-    else if (r.section === 'cogs') bucket.cogs += converted;
-    else if (r.section === 'expense') bucket.expense += converted;
-    else if (r.section === 'other_income') bucket.other_income += converted;
-    else if (r.section === 'other_expense') bucket.other_expense += converted;
-    if (r.partial) bucket.partial = true;
-  }
-  return monthMap;
 }
 
 function renderCountry(countryId) {
   const country = countries.find(c => c.id === countryId);
-  const actualRows = actualsByCountry[countryId] || [];
-  const projRows = projectedByCountry[countryId] || [];
+  const cats = categoriesByCountry[countryId] || [];
+  const actForCountry = actualRows.filter(r => r.country_id === countryId);
+  const projForCountry = projectedRows.filter(r => r.country_id === countryId);
   const main = document.getElementById('main');
 
-  if (!actualRows.length && !projRows.length) {
-    main.innerHTML = `<div class="empty-state"><div class="big">Todavía no hay datos cargados para ${country.name}</div><div>En cuanto tengas el reporte contable de este país, lo cargamos igual que se hizo con Costa Rica.</div></div>`;
+  if (!cats.length || (!actForCountry.length && !projForCountry.length)) {
+    main.innerHTML = `<div class="empty-state"><div class="big">Todavía no hay datos cargados para ${country.name}</div><div>Ve a "Carga anual" para agregar categorías y cargar los primeros valores.</div></div>`;
     return;
   }
 
-  const actualByMonth = aggregateByMonth(actualRows);
-  const projByMonth = aggregateByMonth(projRows);
-  const allMonths = Array.from(new Set([...Object.keys(actualByMonth), ...Object.keys(projByMonth)])).sort();
+  // annual totals per category, and monthly totals overall
+  const catTotals = {}; cats.forEach(c => catTotals[c.id] = { real: 0, proj: 0 });
+  const monthReal = {}, monthProj = {}, monthPartial = {};
 
-  const netOf = (b) => (b.income + b.other_income) - b.cogs - b.expense - b.other_expense;
+  actForCountry.forEach(r => {
+    const acct = accountsById[r.account_id]; if (!acct) return;
+    const mk = r.month.slice(0,7);
+    const converted = convert(Number(r.amount), r.currency_code || acct.default_currency_code, mk);
+    if (catTotals[acct.category_id]) catTotals[acct.category_id].real += converted;
+    monthReal[mk] = (monthReal[mk] || 0) + converted;
+    if (r.is_partial_month) monthPartial[mk] = true;
+  });
+  projForCountry.forEach(r => {
+    const acct = accountsById[r.account_id]; if (!acct) return;
+    const mk = r.month.slice(0,7);
+    const converted = convert(Number(r.amount), r.currency_code || acct.default_currency_code, mk);
+    if (catTotals[acct.category_id]) catTotals[acct.category_id].proj += converted;
+    monthProj[mk] = (monthProj[mk] || 0) + converted;
+  });
 
-  const totalIncome = allMonths.reduce((s,m) => s + (actualByMonth[m] ? actualByMonth[m].income + actualByMonth[m].other_income : 0), 0);
-  const totalCogs = allMonths.reduce((s,m) => s + (actualByMonth[m]?.cogs || 0), 0);
-  const totalExpense = allMonths.reduce((s,m) => s + (actualByMonth[m] ? actualByMonth[m].expense + actualByMonth[m].other_expense : 0), 0);
-  const totalNet = totalIncome - totalCogs - totalExpense;
+  const totalReal = Object.values(catTotals).reduce((s,c) => s + c.real, 0);
+  const totalProj = Object.values(catTotals).reduce((s,c) => s + c.proj, 0);
 
   const bank = bankByCountry[countryId];
   const bankDisplay = bank ? fmt(convert(Number(bank.balance), bank.currency_code, bank.recorded_at.slice(0,7)), displayCurrency) : '—';
-
   const cur = displayCurrency;
+
+  const kpiCards = cats.map(c => `
+    <div class="kpi"><div class="label">${c.name}</div><div class="value ${catTotals[c.id].real >= 0 ? '' : 'neg'}">${fmt(catTotals[c.id].real, cur)}</div><div class="sub">Proy. ${fmt(catTotals[c.id].proj, cur)}</div></div>
+  `).join('');
 
   main.innerHTML = `
     <div class="kpis">
-      <div class="kpi"><div class="label">Ingresos reales</div><div class="value">${fmt(totalIncome, cur)}</div></div>
-      <div class="kpi"><div class="label">Costo de ventas</div><div class="value">${fmt(totalCogs, cur)}</div></div>
-      <div class="kpi"><div class="label">Gastos operativos</div><div class="value">${fmt(totalExpense, cur)}</div></div>
-      <div class="kpi"><div class="label">Resultado neto</div><div class="value ${totalNet >= 0 ? 'pos' : 'neg'}">${fmt(totalNet, cur)}</div></div>
+      ${kpiCards}
+      <div class="kpi total"><div class="label">Flujo neto (real)</div><div class="value">${fmt(totalReal, cur)}</div><div class="sub" style="color:#E7D9E3;">Proy. ${fmt(totalProj, cur)}</div></div>
       <div class="kpi"><div class="label">Caja disponible</div><div class="value">${bankDisplay}</div><div class="sub">${bank ? 'Al ' + bank.recorded_at : 'Sin registrar'}</div></div>
     </div>
 
     <section class="panel">
-      <h2>Ingresos vs. gastos reales por mes</h2>
-      <div class="legend"><span><i style="background:var(--acai)"></i>Ingresos</span><span><i style="background:#D8CFE0"></i>Costo de ventas + gastos</span></div>
+      <h2>Flujo neto real por mes</h2>
+      <div class="legend"><span><i style="background:var(--acai)"></i>Flujo neto real</span></div>
       <div class="chart-wrap" id="chartWrap"></div>
     </section>
 
     <section class="panel">
       <h2>Detalle mensual — real / proyectado</h2>
       <table>
-        <thead><tr><th>Mes</th><th>Ingresos</th><th>Costo de ventas</th><th>Gastos</th><th>Neto</th><th>Diferencia neto</th></tr></thead>
+        <thead><tr><th>Mes</th><th>Total real</th><th>Total proyectado</th><th>Diferencia</th><th>Flujo acumulado</th></tr></thead>
         <tbody id="monthlyBody"></tbody>
       </table>
     </section>
   `;
 
+  const allMonths = Array.from(new Set([...Object.keys(monthReal), ...Object.keys(monthProj)])).sort();
   const tbody = document.getElementById('monthlyBody');
+  let cum = 0;
   allMonths.forEach(m => {
-    const rb = actualByMonth[m] || { income:0, cogs:0, expense:0, other_income:0, other_expense:0, partial:false };
-    const pb = projByMonth[m] || { income:0, cogs:0, expense:0, other_income:0, other_expense:0 };
-    const rIncome = rb.income + rb.other_income, pIncome = pb.income + pb.other_income;
-    const rExpense = rb.expense + rb.other_expense, pExpense = pb.expense + pb.other_expense;
-    const rNet = netOf(rb), pNet = netOf(pb);
-    const hasProj = projByMonth[m] !== undefined;
-    const hasReal = actualByMonth[m] !== undefined;
-    const diff = (hasReal && hasProj) ? (rNet - pNet) : null;
+    const r = monthReal[m], p = monthProj[m];
+    const hasR = r !== undefined, hasP = p !== undefined;
+    if (hasR) cum += r;
+    const diff = (hasR && hasP) ? (r - p) : null;
     const [y, mo] = m.split('-');
     const label = MONTHS_ES[parseInt(mo,10)-1] + ' ' + y;
-
-    const stack = (realVal, projVal) => `<div class="cell-stack"><div class="real">${hasReal ? fmt(realVal, cur) : '—'}</div>${hasProj ? `<div class="proj">${fmt(projVal, cur)} proy.</div>` : ''}</div>`;
-
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="${rb.partial ? 'month-partial' : ''}">${label}${rb.partial ? '<span class="partial-flag">parcial</span>' : ''}</td>
-      <td>${stack(rIncome, pIncome)}</td>
-      <td>${stack(rb.cogs, pb.cogs)}</td>
-      <td>${stack(rExpense, pExpense)}</td>
-      <td>${stack(rNet, pNet)}</td>
+      <td class="${monthPartial[m] ? 'month-partial' : ''}">${label}${monthPartial[m] ? '<span class="partial-flag">parcial</span>' : ''}</td>
+      <td>${hasR ? fmt(r, cur) : '—'}</td>
+      <td>${hasP ? fmt(p, cur) : '—'}</td>
       <td class="${diff !== null ? (diff >= 0 ? 'diff-pos' : 'diff-neg') : ''}">${diff !== null ? fmt(diff, cur) : '—'}</td>
+      <td>${hasR ? fmt(cum, cur) : '—'}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  renderChart(allMonths, actualByMonth);
+  renderChart(allMonths, monthReal);
 }
 
-function renderChart(months, monthMap) {
+function renderChart(months, monthReal) {
   const wrap = document.getElementById('chartWrap');
-  const w = Math.max(560, months.length * 64), h = 200, padBottom = 28, barW = 20, groupW = w / months.length;
-  const maxVal = Math.max(...months.map(m => {
-    const b = monthMap[m] || { income:0, other_income:0, cogs:0, expense:0, other_expense:0 };
-    return Math.max(b.income + b.other_income, b.cogs + b.expense + b.other_expense);
-  })) || 1;
-  const scale = (v) => (v / maxVal) * (h - padBottom - 10);
+  const w = Math.max(560, months.length * 56), h = 200, padBottom = 28, barW = 26, groupW = w / months.length;
+  const vals = months.map(m => monthReal[m] || 0);
+  const maxAbs = Math.max(...vals.map(v => Math.abs(v)), 1);
+  const zeroY = h - padBottom - (h - padBottom - 10) / 2;
+  const scale = (v) => (v / maxAbs) * ((h - padBottom - 10) / 2);
   let bars = '';
   months.forEach((m, i) => {
-    const b = monthMap[m] || { income:0, other_income:0, cogs:0, expense:0, other_expense:0 };
-    const income = b.income + b.other_income, spend = b.cogs + b.expense + b.other_expense;
+    const v = monthReal[m] || 0;
     const cx = i * groupW + groupW / 2;
-    const incomeH = scale(income), spendH = scale(spend);
-    const [y, mo] = m.split('-');
+    const barH = Math.abs(scale(v));
+    const y = v >= 0 ? zeroY - barH : zeroY;
+    const [y4, mo] = m.split('-');
     bars += `
-      <rect fill="var(--acai)" x="${cx - barW - 2}" y="${h - padBottom - incomeH}" width="${barW}" height="${incomeH}" rx="2"></rect>
-      <rect fill="#D8CFE0" x="${cx + 2}" y="${h - padBottom - spendH}" width="${barW}" height="${spendH}" rx="2"></rect>
+      <rect fill="${v >= 0 ? 'var(--acai)' : 'var(--rust)'}" x="${cx - barW/2}" y="${y}" width="${barW}" height="${barH || 1}" rx="2"></rect>
       <text class="chart-axis-label" x="${cx}" y="${h - 8}" text-anchor="middle">${MONTHS_ES[parseInt(mo,10)-1]}</text>
     `;
   });
-  wrap.innerHTML = `<svg class="chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${bars}</svg>`;
+  wrap.innerHTML = `<svg class="chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="var(--border)"></line>${bars}</svg>`;
 }
 
 load();
