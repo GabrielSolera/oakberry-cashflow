@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Carga mensual · OakBerry Centroamérica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FAF9F6;
+    --ink: #221A2B;
+    --ink-soft: #6B6274;
+    --acai: #4A1942;
+    --acai-soft: #7A4270;
+    --mint: #2E7D53;
+    --mint-bg: #E7F3EC;
+    --rust: #B4402A;
+    --rust-bg: #FBEBE7;
+    --border: #E5E1DC;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 36px 48px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand .mark {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 30%, var(--acai-soft), var(--acai) 70%);
+    flex-shrink: 0;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
+  .nav-link {
+    align-self: center;
+    font-size: 14px;
+    color: var(--acai);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .nav-link:hover { border-bottom-color: var(--acai); }
+
+  main { padding: 28px 48px 120px; max-width: 880px; }
+
+  .controls {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12.5px; color: var(--ink-soft); }
+  .field select, .field input[type="month"] {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    min-width: 160px;
+  }
+  .toggle-group {
+    display: flex;
+    gap: 4px;
+    background: #F0EDE8;
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .toggle-group button {
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .toggle-group button.active {
+    background: var(--card);
+    color: var(--acai);
+    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  }
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    padding-bottom: 9px;
+  }
+  .checkbox-field input { width: 15px; height: 15px; accent-color: var(--acai); }
+
+  section.group {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .group-header h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 16px;
+    margin: 0;
+  }
+  .group-header .subtotal { font-size: 14px; color: var(--ink-soft); }
+  .group-body { border-top: 1px solid var(--border); }
+  .group-body.collapsed { display: none; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .acct-name { font-size: 13.5px; flex: 1; }
+  .row .acct-code { color: var(--ink-soft); font-size: 11.5px; margin-right: 8px; }
+  .row input[type="number"] {
+    width: 150px;
+    text-align: right;
+    font-family: inherit;
+    font-feature-settings: "tnum" 1;
+    font-size: 13.5px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .row input[type="number"]:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
+  .row input[type="number"].filled { background: var(--mint-bg); border-color: var(--mint); }
+
+  .save-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 16px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .save-bar .status { font-size: 13.5px; color: var(--ink-soft); }
+  .save-bar .status.ok { color: var(--mint); }
+  .save-bar .status.err { color: var(--rust); }
+  .save-bar button.save {
+    background: var(--acai);
+    color: #fff;
+    border: none;
+    padding: 11px 26px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .save-bar button.save:disabled { opacity: .5; cursor: default; }
+
+  .loading, .empty-state { padding: 60px 0; text-align: center; color: var(--ink-soft); font-size: 14px; }
+
+  @media (max-width: 760px) {
+    header, main, .save-bar { padding-left: 20px; padding-right: 20px; }
+    .row input[type="number"] { width: 110px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark"></span>
+    <div>
+      <h1>Carga mensual</h1>
+      <div class="subtitle">Captura de flujo de caja real o proyectado, por cuenta</div>
+    </div>
+  </div>
+  <a class="nav-link" href="index.html">← Volver al resumen</a>
+</header>
+
+<main id="main">
+  <div class="loading">Cargando catálogo de cuentas…</div>
+</main>
+
+<div class="save-bar" id="saveBar" style="display:none;">
+  <span class="status" id="saveStatus"></span>
+  <button class="save" id="saveBtn">Guardar cambios</button>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://dwxovleqwqmeqrjiyqyf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eG92bGVxd3FtZXFyaml5cXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDQ0MDksImV4cCI6MjEwMzcyMDQwOX0.b76ZdNVFuG9fK_gQKPtZnNpEykFgv0uGA9B91RsKKgk';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'cashflow' } });
+
+const SECTION_LABELS = {
+  income: 'Ingresos',
+  cogs: 'Costo de ventas',
+  expense: 'Gastos',
+  other_income: 'Otros ingresos',
+  other_expense: 'Otros gastos'
+};
+const SECTION_ORDER = ['income', 'cogs', 'expense', 'other_income', 'other_expense'];
+
+let countries = [];
+let accounts = [];
+let state = {
+  countryId: null,
+  month: null,      // 'YYYY-MM'
+  type: 'actual',   // 'actual' | 'projected'
+  partial: false
+};
+let existing = {}; // account_id -> amount (for current selection)
+
+async function init() {
+  const { data: countryRows, error: cErr } = await sb.from('countries').select('id,name,currency_code').order('id');
+  if (cErr) { renderError(cErr); return; }
+  countries = countryRows;
+
+  const { data: acctRows, error: aErr } = await sb.from('accounts')
+    .select('id,code,name,section')
+    .eq('active', true)
+    .order('section').order('name');
+  if (aErr) { renderError(aErr); return; }
+  accounts = acctRows;
+
+  state.countryId = countries[0]?.id;
+  const now = new Date();
+  state.month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  renderShell();
+  await loadExistingAndRenderForm();
+}
+
+function renderError(err) {
+  document.getElementById('main').innerHTML = `
+    <div class="empty-state">No se pudo cargar: ${err.message || err}</div>`;
+}
+
+function renderShell() {
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="controls">
+      <div class="field">
+        <label>País</label>
+        <select id="countrySelect">
+          ${countries.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Mes</label>
+        <input type="month" id="monthInput" value="${state.month}" />
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <div class="toggle-group" id="typeToggle">
+          <button data-type="actual" class="active">Real</button>
+          <button data-type="projected">Proyectado</button>
+        </div>
+      </div>
+      <div class="checkbox-field" id="partialField">
+        <input type="checkbox" id="partialCheck" />
+        <label for="partialCheck">Mes parcial (aún no cierra)</label>
+      </div>
+    </div>
+    <div id="formArea"></div>
+  `;
+
+  document.getElementById('countrySelect').addEventListener('change', e => {
+    state.countryId = Number(e.target.value);
+    loadExistingAndRenderForm();
+  });
+  document.getElementById('monthInput').addEventListener('change', e => {
+    state.month = e.target.value;
+    loadExistingAndRenderForm();
+  });
+  document.getElementById('typeToggle').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    state.type = btn.dataset.type;
+    document.querySelectorAll('#typeToggle button').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('partialField').style.display = state.type === 'actual' ? 'flex' : 'none';
+    loadExistingAndRenderForm();
+  });
+  document.getElementById('partialCheck').addEventListener('change', e => {
+    state.partial = e.target.checked;
+  });
+}
+
+async function loadExistingAndRenderForm() {
+  const formArea = document.getElementById('formArea');
+  formArea.innerHTML = `<div class="loading">Cargando datos existentes…</div>`;
+  document.getElementById('saveBar').style.display = 'none';
+
+  const table = state.type === 'actual' ? 'cash_flow_actual' : 'cash_flow_projected';
+  const monthDate = `${state.month}-01`;
+
+  const cols = state.type === 'actual' ? 'account_id,amount,is_partial_month' : 'account_id,amount';
+  const { data, error } = await sb.from(table).select(cols)
+    .eq('country_id', state.countryId)
+    .eq('month', monthDate);
+
+  if (error) { formArea.innerHTML = `<div class="empty-state">Error cargando datos: ${error.message}</div>`; return; }
+
+  existing = {};
+  (data || []).forEach(r => { existing[r.account_id] = r.amount; });
+  if (state.type === 'actual' && data && data.length) {
+    state.partial = !!data[0].is_partial_month;
+    document.getElementById('partialCheck').checked = state.partial;
+  }
+
+  renderForm();
+}
+
+function renderForm() {
+  const formArea = document.getElementById('formArea');
+  const bySection = {};
+  SECTION_ORDER.forEach(s => bySection[s] = []);
+  accounts.forEach(a => { if (bySection[a.section]) bySection[a.section].push(a); });
+
+  formArea.innerHTML = SECTION_ORDER.filter(s => bySection[s].length).map(section => `
+    <section class="group" data-section="${section}">
+      <div class="group-header">
+        <h2>${SECTION_LABELS[section]}</h2>
+        <span class="subtotal" id="subtotal-${section}"></span>
+      </div>
+      <div class="group-body">
+        ${bySection[section].map(a => `
+          <div class="row">
+            <div class="acct-name"><span class="acct-code">${a.code || ''}</span>${a.name}</div>
+            <input type="number" step="0.01" placeholder="0" data-account-id="${a.id}"
+              value="${existing[a.id] !== undefined ? existing[a.id] : ''}"
+              class="${existing[a.id] !== undefined ? 'filled' : ''}" />
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
+
+  formArea.querySelectorAll('.group-header').forEach(h => {
+    h.addEventListener('click', () => {
+      h.nextElementSibling.classList.toggle('collapsed');
+    });
+  });
+  formArea.querySelectorAll('input[type="number"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.classList.toggle('filled', inp.value !== '');
+      updateSubtotals();
+    });
+  });
+
+  updateSubtotals();
+  document.getElementById('saveBar').style.display = 'flex';
+  document.getElementById('saveStatus').textContent = '';
+  document.getElementById('saveStatus').className = 'status';
+}
+
+function updateSubtotals() {
+  SECTION_ORDER.forEach(section => {
+    const el = document.getElementById(`subtotal-${section}`);
+    if (!el) return;
+    const inputs = document.querySelectorAll(`.group[data-section="${section}"] input[type="number"]`);
+    let sum = 0;
+    inputs.forEach(i => { if (i.value !== '') sum += parseFloat(i.value) || 0; });
+    const country = countries.find(c => c.id === state.countryId);
+    const cur = country?.currency_code === 'CRC' ? '₡' : '$';
+    el.textContent = cur + Math.round(sum).toLocaleString('es-CR');
+  });
+}
+
+document.addEventListener('click', async (e) => {
+  if (e.target.id !== 'saveBtn') return;
+  const btn = e.target;
+  const statusEl = document.getElementById('saveStatus');
+  btn.disabled = true;
+  statusEl.className = 'status';
+  statusEl.textContent = 'Guardando…';
+
+  const table = state.type === 'actual' ? 'cash_flow_actual' : 'cash_flow_projected';
+  const monthDate = `${state.month}-01`;
+  const inputs = document.querySelectorAll('#formArea input[type="number"]');
+  const rows = [];
+  inputs.forEach(i => {
+    if (i.value === '') return;
+    const row = {
+      account_id: Number(i.dataset.accountId),
+      country_id: state.countryId,
+      month: monthDate,
+      amount: parseFloat(i.value)
+    };
+    if (state.type === 'actual') row.is_partial_month = state.partial;
+    rows.push(row);
+  });
+
+  if (!rows.length) {
+    statusEl.textContent = 'No hay valores para guardar';
+    statusEl.classList.add('err');
+    btn.disabled = false;
+    return;
+  }
+
+  const { error } = await sb.from(table).upsert(rows, { onConflict: 'account_id,country_id,month' });
+  btn.disabled = false;
+  if (error) {
+    statusEl.textContent = 'Error: ' + error.message;
+    statusEl.classList.add('err');
+  } else {
+    statusEl.textContent = `Guardado ✓ ${rows.length} cuentas actualizadas`;
+    statusEl.classList.add('ok');
+  }
+});
+
+init();
+</script>
+
+</body>
+</html>
