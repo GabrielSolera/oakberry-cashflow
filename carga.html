@@ -3,205 +3,87 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Carga mensual · OakBerry Centroamérica</title>
+<title>Carga anual · OakBerry Centroamérica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #FAF9F6;
-    --ink: #221A2B;
-    --ink-soft: #6B6274;
-    --acai: #4A1942;
-    --acai-soft: #7A4270;
-    --mint: #2E7D53;
-    --mint-bg: #E7F3EC;
-    --rust: #B4402A;
-    --rust-bg: #FBEBE7;
-    --border: #E5E1DC;
-    --card: #FFFFFF;
+    --bg: #FAF9F6; --ink: #221A2B; --ink-soft: #6B6274;
+    --acai: #4A1942; --acai-soft: #7A4270;
+    --mint: #2E7D53; --mint-bg: #E7F3EC;
+    --rust: #B4402A; --rust-bg: #FBEBE7;
+    --border: #E5E1DC; --card: #FFFFFF;
+    --real-bg: #F4F0F6; --proj-bg: #FBFAF7;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-  }
-  header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 36px 48px 20px;
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-    gap: 16px;
-  }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; font-feature-settings: "tnum" 1, "lnum" 1; }
+  header { display: flex; align-items: baseline; justify-content: space-between; padding: 32px 40px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 14px; }
   .brand { display: flex; align-items: baseline; gap: 12px; }
-  .brand .mark {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 30%, var(--acai-soft), var(--acai) 70%);
-    flex-shrink: 0;
-  }
-  h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 26px;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-  .subtitle { color: var(--ink-soft); font-size: 14px; margin-top: 2px; }
-  .nav-link {
-    align-self: center;
-    font-size: 14px;
-    color: var(--acai);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-  }
-  .nav-link:hover { border-bottom-color: var(--acai); }
+  .brand .mark { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 32% 30%, var(--acai-soft), var(--acai) 70%); flex-shrink: 0; }
+  h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 23px; margin: 0; letter-spacing: -0.01em; }
+  .subtitle { color: var(--ink-soft); font-size: 13.5px; margin-top: 2px; }
+  .nav-link { align-self: center; font-size: 13.5px; color: var(--acai); text-decoration: none; }
 
-  main { padding: 28px 48px 120px; max-width: 880px; }
+  main { padding: 24px 40px 120px; max-width: 1360px; }
 
-  .controls {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 22px 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 22px;
-    align-items: flex-end;
-    margin-bottom: 24px;
-  }
+  .controls { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
   .field { display: flex; flex-direction: column; gap: 6px; }
-  .field label { font-size: 12.5px; color: var(--ink-soft); }
-  .field select, .field input[type="month"] {
-    font-family: inherit;
-    font-size: 14px;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--ink);
-    min-width: 160px;
-  }
-  .toggle-group {
-    display: flex;
-    gap: 4px;
-    background: #F0EDE8;
-    padding: 4px;
-    border-radius: 10px;
-  }
-  .toggle-group button {
-    border: none;
-    background: transparent;
-    padding: 8px 16px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ink-soft);
-    border-radius: 7px;
-    cursor: pointer;
-  }
-  .toggle-group button.active {
-    background: var(--card);
-    color: var(--acai);
-    box-shadow: 0 1px 2px rgba(0,0,0,.06);
-  }
-  .checkbox-field {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: var(--ink-soft);
-    padding-bottom: 9px;
-  }
-  .checkbox-field input { width: 15px; height: 15px; accent-color: var(--acai); }
+  .field label { font-size: 12px; color: var(--ink-soft); }
+  .field select { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
+  .toggle-group { display: flex; gap: 4px; background: #F0EDE8; padding: 4px; border-radius: 10px; }
+  .toggle-group button { border: none; background: transparent; padding: 7px 14px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; }
+  .toggle-group button.active { background: var(--card); color: var(--acai); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
 
-  section.group {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .group-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 22px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .group-header h2 {
-    font-family: 'Fraunces', serif;
-    font-weight: 500;
-    font-size: 16px;
-    margin: 0;
-  }
-  .group-header .subtotal { font-size: 14px; color: var(--ink-soft); }
-  .group-body { border-top: 1px solid var(--border); }
+  .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+  .bank-panel .current { flex: 1; min-width: 220px; }
+  .bank-panel .current .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .bank-panel .current .amount { font-family: 'Fraunces', serif; font-size: 22px; }
+  .bank-panel .current .meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .bank-panel input[type="date"], .bank-panel input[type="number"] { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
+  .bank-panel input[type="number"] { width: 160px; }
+  .bank-panel button.bank-save { background: var(--acai); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+
+  section.group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+  .group-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; }
+  .group-header h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15.5px; margin: 0; }
+  .group-header .hint { font-size: 12px; color: var(--ink-soft); }
+  .group-body { border-top: 1px solid var(--border); overflow-x: auto; }
   .group-body.collapsed { display: none; }
 
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 22px;
-    border-bottom: 1px solid var(--border);
-    gap: 16px;
-  }
-  .row:last-child { border-bottom: none; }
-  .row .acct-name { font-size: 13.5px; flex: 1; }
-  .row .acct-code { color: var(--ink-soft); font-size: 11.5px; margin-right: 8px; }
-  .row input[type="number"] {
-    width: 150px;
-    text-align: right;
-    font-family: inherit;
-    font-feature-settings: "tnum" 1;
-    font-size: 13.5px;
-    padding: 7px 10px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: var(--bg);
-    color: var(--ink);
-  }
-  .row input[type="number"]:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
-  .row input[type="number"].filled { background: var(--mint-bg); border-color: var(--mint); }
+  table.year-grid { border-collapse: collapse; font-size: 12.5px; min-width: 100%; }
+  table.year-grid th, table.year-grid td { border-bottom: 1px solid var(--border); padding: 5px 6px; white-space: nowrap; }
+  table.year-grid thead th { color: var(--ink-soft); font-weight: 500; font-size: 11px; text-align: right; padding-top: 10px; padding-bottom: 8px; }
+  table.year-grid thead th:first-child, table.year-grid thead th:nth-child(2), table.year-grid thead th:nth-child(3) { text-align: left; }
+  table.year-grid td.acct-name { font-size: 12.5px; vertical-align: top; padding-top: 8px; max-width: 190px; white-space: normal; }
+  table.year-grid td.acct-code { color: var(--ink-soft); font-size: 10.5px; display: block; }
+  table.year-grid td.currency-cell { vertical-align: top; padding-top: 6px; }
+  table.year-grid td.currency-cell select { font-family: inherit; font-size: 11.5px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
+  table.year-grid td.type-label { color: var(--ink-soft); font-size: 11px; }
+  tr.row-real td.type-label { color: var(--acai); }
+  tr.row-proj td.type-label { color: var(--ink-soft); }
+  tr.row-diff td.type-label, tr.row-diff td.diff-cell { color: var(--ink-soft); font-style: normal; }
+  tr.row-real { background: var(--real-bg); }
+  tr.row-proj { background: var(--proj-bg); }
+  table.year-grid input[type="number"] { width: 78px; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
+  table.year-grid input[type="number"]:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
+  .diff-cell { text-align: right; font-size: 11.5px; }
+  .diff-cell.pos { color: var(--mint); }
+  .diff-cell.neg { color: var(--rust); }
+  tr.subtotal-row td { font-weight: 600; background: #F0EDE8; }
+  tr.subtotal-row td.type-label { font-weight: 500; }
 
-  .save-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    padding: 16px 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .save-bar .status { font-size: 13.5px; color: var(--ink-soft); }
+  .save-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 14px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .save-bar .status { font-size: 13px; color: var(--ink-soft); }
   .save-bar .status.ok { color: var(--mint); }
   .save-bar .status.err { color: var(--rust); }
-  .save-bar button.save {
-    background: var(--acai);
-    color: #fff;
-    border: none;
-    padding: 11px 26px;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  }
+  .save-bar button.save { background: var(--acai); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
   .save-bar button.save:disabled { opacity: .5; cursor: default; }
 
-  .loading, .empty-state { padding: 60px 0; text-align: center; color: var(--ink-soft); font-size: 14px; }
+  .loading, .empty-state { padding: 50px 0; text-align: center; color: var(--ink-soft); font-size: 13.5px; }
 
   @media (max-width: 760px) {
-    header, main, .save-bar { padding-left: 20px; padding-right: 20px; }
-    .row input[type="number"] { width: 110px; }
+    header, main, .save-bar { padding-left: 18px; padding-right: 18px; }
   }
 </style>
 </head>
@@ -211,15 +93,15 @@
   <div class="brand">
     <span class="mark"></span>
     <div>
-      <h1>Carga mensual</h1>
-      <div class="subtitle">Captura de flujo de caja real o proyectado, por cuenta</div>
+      <h1>Carga anual</h1>
+      <div class="subtitle">Real, proyectado y diferencia por cuenta — un año completo</div>
     </div>
   </div>
   <a class="nav-link" href="index.html">← Volver al resumen</a>
 </header>
 
 <main id="main">
-  <div class="loading">Cargando catálogo de cuentas…</div>
+  <div class="loading">Cargando…</div>
 </main>
 
 <div class="save-bar" id="saveBar" style="display:none;">
@@ -234,24 +116,44 @@ const SUPABASE_URL = 'https://dwxovleqwqmeqrjiyqyf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3eG92bGVxd3FtZXFyaml5cXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDQ0MDksImV4cCI6MjEwMzcyMDQwOX0.b76ZdNVFuG9fK_gQKPtZnNpEykFgv0uGA9B91RsKKgk';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'cashflow' } });
 
-const SECTION_LABELS = {
-  income: 'Ingresos',
-  cogs: 'Costo de ventas',
-  expense: 'Gastos',
-  other_income: 'Otros ingresos',
-  other_expense: 'Otros gastos'
-};
+const SECTION_LABELS = { income: 'Ingresos', cogs: 'Costo de ventas', expense: 'Gastos', other_income: 'Otros ingresos', other_expense: 'Otros gastos' };
 const SECTION_ORDER = ['income', 'cogs', 'expense', 'other_income', 'other_expense'];
+const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+const TODAY = new Date();
+const CURRENT_MONTH_KEY = `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}`;
 
-let countries = [];
-let accounts = [];
-let state = {
-  countryId: null,
-  month: null,      // 'YYYY-MM'
-  type: 'actual',   // 'actual' | 'projected'
-  partial: false
-};
-let existing = {}; // account_id -> amount (for current selection)
+let countries = [], accounts = [];
+let state = { countryId: null, year: TODAY.getFullYear(), displayCurrency: null };
+let actuals = {};    // account_id -> { 'YYYY-MM': {amount, currency_code} }
+let projected = {};  // account_id -> { 'YYYY-MM': {amount, currency_code} }
+let rowCurrency = {}; // account_id -> currency_code chosen for this session
+let rates = {};       // currency_code -> { 'YYYY-MM': rate_to_usd }
+let latestBalance = null;
+
+function fmt(n, currency) {
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(Math.round(n));
+  const symbol = currency === 'USD' ? '$' : (currency === 'CRC' ? '₡' : (currency === 'GTQ' ? 'Q' : currency + ' '));
+  return sign + symbol + abs.toLocaleString('es-CR');
+}
+
+function getRate(currency, monthKey) {
+  if (currency === state.displayCurrency) return 1;
+  const table = rates[currency] || {};
+  if (table[monthKey] !== undefined) return table[monthKey];
+  const keys = Object.keys(table).sort();
+  const past = keys.filter(k => k <= monthKey).pop();
+  if (past) return table[past];
+  return keys.length ? table[keys[0]] : 1;
+}
+
+function convert(amount, fromCurrency, monthKey) {
+  if (fromCurrency === state.displayCurrency) return amount;
+  const fromRate = getRate(fromCurrency, monthKey);   // units of `fromCurrency` per 1 USD
+  const toRate = getRate(state.displayCurrency, monthKey);
+  const usd = amount / fromRate;
+  return usd * toRate;
+}
 
 async function init() {
   const { data: countryRows, error: cErr } = await sb.from('countries').select('id,name,currency_code').order('id');
@@ -259,196 +161,325 @@ async function init() {
   countries = countryRows;
 
   const { data: acctRows, error: aErr } = await sb.from('accounts')
-    .select('id,code,name,section')
-    .eq('active', true)
-    .order('section').order('name');
+    .select('id,code,name,section,default_currency_code').eq('active', true).order('section').order('name');
   if (aErr) { renderError(aErr); return; }
   accounts = acctRows;
 
+  const { data: rateRows, error: rErr } = await sb.from('exchange_rates').select('currency_code,month,rate_to_usd');
+  if (!rErr) {
+    rateRows.forEach(r => {
+      const mk = r.month.slice(0, 7);
+      if (!rates[r.currency_code]) rates[r.currency_code] = {};
+      rates[r.currency_code][mk] = Number(r.rate_to_usd);
+    });
+  }
+
   state.countryId = countries[0]?.id;
-  const now = new Date();
-  state.month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const country = countries.find(c => c.id === state.countryId);
+  state.displayCurrency = country?.currency_code || 'CRC';
 
   renderShell();
-  await loadExistingAndRenderForm();
+  await loadYearData();
+  await loadBankBalance();
 }
 
 function renderError(err) {
-  document.getElementById('main').innerHTML = `
-    <div class="empty-state">No se pudo cargar: ${err.message || err}</div>`;
+  document.getElementById('main').innerHTML = `<div class="empty-state">No se pudo cargar: ${err.message || err}</div>`;
+}
+
+function currencyOptionsFor(country) {
+  if (!country) return ['USD'];
+  return country.currency_code === 'USD' ? ['USD'] : [country.currency_code, 'USD'];
 }
 
 function renderShell() {
-  const main = document.getElementById('main');
-  main.innerHTML = `
+  const years = [TODAY.getFullYear() - 1, TODAY.getFullYear(), TODAY.getFullYear() + 1];
+  const country = countries.find(c => c.id === state.countryId);
+  const curOpts = currencyOptionsFor(country);
+
+  document.getElementById('main').innerHTML = `
     <div class="controls">
-      <div class="field">
-        <label>País</label>
-        <select id="countrySelect">
-          ${countries.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-        </select>
+      <div class="field"><label>País</label>
+        <select id="countrySelect">${countries.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
       </div>
-      <div class="field">
-        <label>Mes</label>
-        <input type="month" id="monthInput" value="${state.month}" />
+      <div class="field"><label>Año</label>
+        <select id="yearSelect">${years.map(y => `<option value="${y}" ${y===state.year?'selected':''}>${y}</option>`).join('')}</select>
       </div>
-      <div class="field">
-        <label>Tipo</label>
-        <div class="toggle-group" id="typeToggle">
-          <button data-type="actual" class="active">Real</button>
-          <button data-type="projected">Proyectado</button>
+      ${curOpts.length > 1 ? `
+      <div class="field"><label>Ver totales en</label>
+        <div class="toggle-group" id="currencyToggle">
+          ${curOpts.map((c,i) => `<button data-cur="${c}" class="${c===state.displayCurrency?'active':''}">${c}</button>`).join('')}
         </div>
-      </div>
-      <div class="checkbox-field" id="partialField">
-        <input type="checkbox" id="partialCheck" />
-        <label for="partialCheck">Mes parcial (aún no cierra)</label>
-      </div>
+      </div>` : ''}
     </div>
-    <div id="formArea"></div>
+    <div class="bank-panel" id="bankPanel">
+      <div class="current">
+        <div class="label">Saldo de banco actual</div>
+        <div class="amount" id="bankAmount">—</div>
+        <div class="meta" id="bankMeta">Sin registrar</div>
+      </div>
+      <div class="field"><label>Fecha</label><input type="date" id="bankDate" value="${TODAY.toISOString().slice(0,10)}"/></div>
+      <div class="field"><label>Nuevo saldo</label><input type="number" step="0.01" id="bankAmountInput" placeholder="0"/></div>
+      <button class="bank-save" id="bankSaveBtn">Actualizar saldo</button>
+    </div>
+    <div id="gridArea"></div>
   `;
 
   document.getElementById('countrySelect').addEventListener('change', e => {
     state.countryId = Number(e.target.value);
-    loadExistingAndRenderForm();
+    const c = countries.find(x => x.id === state.countryId);
+    state.displayCurrency = c?.currency_code || 'USD';
+    renderShell();
+    loadYearData();
+    loadBankBalance();
   });
-  document.getElementById('monthInput').addEventListener('change', e => {
-    state.month = e.target.value;
-    loadExistingAndRenderForm();
+  document.getElementById('yearSelect').addEventListener('change', e => {
+    state.year = Number(e.target.value);
+    loadYearData();
   });
-  document.getElementById('typeToggle').addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    state.type = btn.dataset.type;
-    document.querySelectorAll('#typeToggle button').forEach(b => b.classList.toggle('active', b === btn));
-    document.getElementById('partialField').style.display = state.type === 'actual' ? 'flex' : 'none';
-    loadExistingAndRenderForm();
+  const toggle = document.getElementById('currencyToggle');
+  if (toggle) toggle.addEventListener('click', e => {
+    const btn = e.target.closest('button'); if (!btn) return;
+    state.displayCurrency = btn.dataset.cur;
+    toggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+    renderGrid();
   });
-  document.getElementById('partialCheck').addEventListener('change', e => {
-    state.partial = e.target.checked;
-  });
+  document.getElementById('bankSaveBtn').addEventListener('click', saveBankBalance);
 }
 
-async function loadExistingAndRenderForm() {
-  const formArea = document.getElementById('formArea');
-  formArea.innerHTML = `<div class="loading">Cargando datos existentes…</div>`;
+async function loadBankBalance() {
+  const { data, error } = await sb.from('cash_position').select('balance,currency_code,recorded_at')
+    .eq('country_id', state.countryId).order('recorded_at', { ascending: false }).limit(1);
+  if (error || !data || !data.length) {
+    latestBalance = null;
+    document.getElementById('bankAmount').textContent = '—';
+    document.getElementById('bankMeta').textContent = 'Sin registrar';
+    return;
+  }
+  latestBalance = data[0];
+  document.getElementById('bankAmount').textContent = fmt(Number(latestBalance.balance), latestBalance.currency_code);
+  document.getElementById('bankMeta').textContent = `Actualizado ${latestBalance.recorded_at}`;
+}
+
+async function saveBankBalance() {
+  const btn = document.getElementById('bankSaveBtn');
+  const dateVal = document.getElementById('bankDate').value;
+  const amountVal = document.getElementById('bankAmountInput').value;
+  if (!amountVal) return;
+  const country = countries.find(c => c.id === state.countryId);
+  btn.disabled = true;
+  const { error } = await sb.from('cash_position').insert({
+    country_id: state.countryId, recorded_at: dateVal, balance: parseFloat(amountVal), currency_code: country.currency_code
+  });
+  btn.disabled = false;
+  if (!error) {
+    document.getElementById('bankAmountInput').value = '';
+    loadBankBalance();
+  } else {
+    alert('Error guardando saldo: ' + error.message);
+  }
+}
+
+async function loadYearData() {
+  const gridArea = document.getElementById('gridArea');
+  gridArea.innerHTML = `<div class="loading">Cargando datos del año…</div>`;
   document.getElementById('saveBar').style.display = 'none';
 
-  const table = state.type === 'actual' ? 'cash_flow_actual' : 'cash_flow_projected';
-  const monthDate = `${state.month}-01`;
+  const start = `${state.year}-01-01`;
+  const end = `${state.year}-12-31`;
 
-  const cols = state.type === 'actual' ? 'account_id,amount,is_partial_month' : 'account_id,amount';
-  const { data, error } = await sb.from(table).select(cols)
-    .eq('country_id', state.countryId)
-    .eq('month', monthDate);
+  const [{ data: actRows, error: actErr }, { data: projRows, error: projErr }] = await Promise.all([
+    sb.from('cash_flow_actual').select('account_id,month,amount,currency_code').eq('country_id', state.countryId).gte('month', start).lte('month', end),
+    sb.from('cash_flow_projected').select('account_id,month,amount,currency_code').eq('country_id', state.countryId).gte('month', start).lte('month', end)
+  ]);
+  if (actErr || projErr) { gridArea.innerHTML = `<div class="empty-state">Error: ${(actErr||projErr).message}</div>`; return; }
 
-  if (error) { formArea.innerHTML = `<div class="empty-state">Error cargando datos: ${error.message}</div>`; return; }
+  actuals = {}; projected = {}; rowCurrency = {};
+  (actRows || []).forEach(r => {
+    const mk = r.month.slice(0,7);
+    if (!actuals[r.account_id]) actuals[r.account_id] = {};
+    actuals[r.account_id][mk] = { amount: Number(r.amount), currency_code: r.currency_code };
+    if (r.currency_code && !rowCurrency[r.account_id]) rowCurrency[r.account_id] = r.currency_code;
+  });
+  (projRows || []).forEach(r => {
+    const mk = r.month.slice(0,7);
+    if (!projected[r.account_id]) projected[r.account_id] = {};
+    projected[r.account_id][mk] = { amount: Number(r.amount), currency_code: r.currency_code };
+    if (r.currency_code && !rowCurrency[r.account_id]) rowCurrency[r.account_id] = r.currency_code;
+  });
 
-  existing = {};
-  (data || []).forEach(r => { existing[r.account_id] = r.amount; });
-  if (state.type === 'actual' && data && data.length) {
-    state.partial = !!data[0].is_partial_month;
-    document.getElementById('partialCheck').checked = state.partial;
-  }
-
-  renderForm();
+  renderGrid();
 }
 
-function renderForm() {
-  const formArea = document.getElementById('formArea');
-  const bySection = {};
-  SECTION_ORDER.forEach(s => bySection[s] = []);
+function renderGrid() {
+  const gridArea = document.getElementById('gridArea');
+  const country = countries.find(c => c.id === state.countryId);
+  const curOpts = currencyOptionsFor(country);
+  const bySection = {}; SECTION_ORDER.forEach(s => bySection[s] = []);
   accounts.forEach(a => { if (bySection[a.section]) bySection[a.section].push(a); });
 
-  formArea.innerHTML = SECTION_ORDER.filter(s => bySection[s].length).map(section => `
+  gridArea.innerHTML = SECTION_ORDER.filter(s => bySection[s].length).map(section => `
     <section class="group" data-section="${section}">
       <div class="group-header">
         <h2>${SECTION_LABELS[section]}</h2>
-        <span class="subtotal" id="subtotal-${section}"></span>
+        <span class="hint">${bySection[section].length} cuentas — clic para ${'expandir/contraer'}</span>
       </div>
-      <div class="group-body">
-        ${bySection[section].map(a => `
-          <div class="row">
-            <div class="acct-name"><span class="acct-code">${a.code || ''}</span>${a.name}</div>
-            <input type="number" step="0.01" placeholder="0" data-account-id="${a.id}"
-              value="${existing[a.id] !== undefined ? existing[a.id] : ''}"
-              class="${existing[a.id] !== undefined ? 'filled' : ''}" />
-          </div>
-        `).join('')}
+      <div class="group-body collapsed">
+        <table class="year-grid" data-section-table="${section}">
+          <thead>
+            <tr>
+              <th>Cuenta</th><th>Moneda</th><th></th>
+              ${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${bySection[section].map(a => acctRowsHtml(a, curOpts)).join('')}
+            <tr class="subtotal-row row-real"><td colspan="2"></td><td class="type-label">Total real</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell" data-kind="real" data-mi="${i}"></td>`).join('')}</tr>
+            <tr class="subtotal-row row-proj"><td colspan="2"></td><td class="type-label">Total proyectado</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell" data-kind="proj" data-mi="${i}"></td>`).join('')}</tr>
+            <tr class="subtotal-row row-diff"><td colspan="2"></td><td class="type-label">Diferencia</td>${MONTHS_ES.map((m,i) => `<td class="subtotal-cell diff-cell" data-kind="diff" data-mi="${i}"></td>`).join('')}</tr>
+          </tbody>
+        </table>
       </div>
     </section>
   `).join('');
 
-  formArea.querySelectorAll('.group-header').forEach(h => {
-    h.addEventListener('click', () => {
-      h.nextElementSibling.classList.toggle('collapsed');
+  gridArea.querySelectorAll('.group-header').forEach(h => {
+    h.addEventListener('click', () => { h.nextElementSibling.classList.toggle('collapsed'); recalcSection(h.nextElementSibling.querySelector('table').dataset.sectionTable); });
+  });
+  gridArea.querySelectorAll('input[type="number"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const section = inp.closest('table').dataset.sectionTable;
+      updateDiffCell(inp);
+      recalcSection(section);
     });
   });
-  formArea.querySelectorAll('input[type="number"]').forEach(inp => {
-    inp.addEventListener('input', () => {
-      inp.classList.toggle('filled', inp.value !== '');
-      updateSubtotals();
+  gridArea.querySelectorAll('select.acct-currency').forEach(sel => {
+    sel.addEventListener('change', () => {
+      rowCurrency[sel.dataset.accountId] = sel.value;
+      const section = sel.closest('table').dataset.sectionTable;
+      recalcSection(section);
     });
   });
 
-  updateSubtotals();
+  SECTION_ORDER.forEach(s => { if (bySection[s].length) recalcSection(s); });
   document.getElementById('saveBar').style.display = 'flex';
   document.getElementById('saveStatus').textContent = '';
   document.getElementById('saveStatus').className = 'status';
 }
 
-function updateSubtotals() {
-  SECTION_ORDER.forEach(section => {
-    const el = document.getElementById(`subtotal-${section}`);
-    if (!el) return;
-    const inputs = document.querySelectorAll(`.group[data-section="${section}"] input[type="number"]`);
-    let sum = 0;
-    inputs.forEach(i => { if (i.value !== '') sum += parseFloat(i.value) || 0; });
-    const country = countries.find(c => c.id === state.countryId);
-    const cur = country?.currency_code === 'CRC' ? '₡' : '$';
-    el.textContent = cur + Math.round(sum).toLocaleString('es-CR');
+function acctRowsHtml(a, curOpts) {
+  const cur = rowCurrency[a.id] || a.default_currency_code || curOpts[0];
+  const realVals = actuals[a.id] || {};
+  const projVals = projected[a.id] || {};
+  const monthCells = (vals, cls) => MONTHS_ES.map((m, i) => {
+    const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
+    const v = vals[mk];
+    return `<td><input type="number" step="0.01" class="${cls}" placeholder="0" data-account-id="${a.id}" data-month="${mk}" value="${v !== undefined ? v.amount : ''}"/></td>`;
+  }).join('');
+  const diffCells = MONTHS_ES.map((m,i) => {
+    const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
+    const r = realVals[mk]?.amount, p = projVals[mk]?.amount;
+    const d = (r !== undefined && p !== undefined) ? (r - p) : null;
+    return `<td class="diff-cell" data-account-id="${a.id}" data-month="${mk}">${d !== null ? fmt(d, cur) : '—'}</td>`;
+  }).join('');
+  const curSelect = curOpts.length > 1
+    ? `<select class="acct-currency" data-account-id="${a.id}">${curOpts.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}</select>`
+    : `<span>${cur}</span>`;
+  return `
+    <tr class="row-real"><td class="acct-name" rowspan="3"><span class="acct-code">${a.code||''}</span>${a.name}</td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
+    <tr class="row-proj"><td class="type-label">Proyectado</td>${monthCells(projVals,'proj-input')}</tr>
+    <tr class="row-diff"><td class="type-label">Diferencia</td>${diffCells}</tr>
+  `;
+}
+
+function updateDiffCell(inp) {
+  const accountId = inp.dataset.accountId, mk = inp.dataset.month;
+  const row3 = inp.closest('table').querySelector(`.diff-cell[data-account-id="${accountId}"][data-month="${mk}"]`);
+  if (!row3) return;
+  const table = inp.closest('table');
+  const realInput = table.querySelector(`input.real-input[data-account-id="${accountId}"][data-month="${mk}"]`);
+  const projInput = table.querySelector(`input.proj-input[data-account-id="${accountId}"][data-month="${mk}"]`);
+  const r = realInput.value !== '' ? parseFloat(realInput.value) : null;
+  const p = projInput.value !== '' ? parseFloat(projInput.value) : null;
+  const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
+  if (r !== null && p !== null) {
+    const d = r - p;
+    row3.textContent = fmt(d, cur);
+    row3.classList.toggle('pos', d >= 0);
+    row3.classList.toggle('neg', d < 0);
+  } else {
+    row3.textContent = '—';
+    row3.classList.remove('pos','neg');
+  }
+}
+
+function recalcSection(section) {
+  const table = document.querySelector(`table[data-section-table="${section}"]`);
+  if (!table) return;
+  MONTHS_ES.forEach((m, i) => {
+    const mk = `${state.year}-${String(i+1).padStart(2,'0')}`;
+    let realSum = 0, projSum = 0;
+    table.querySelectorAll(`input.real-input[data-month="${mk}"]`).forEach(inp => {
+      if (inp.value === '') return;
+      const accountId = inp.dataset.accountId;
+      const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
+      realSum += convert(parseFloat(inp.value), cur, mk);
+    });
+    table.querySelectorAll(`input.proj-input[data-month="${mk}"]`).forEach(inp => {
+      if (inp.value === '') return;
+      const accountId = inp.dataset.accountId;
+      const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code || state.displayCurrency;
+      projSum += convert(parseFloat(inp.value), cur, mk);
+    });
+    const realCell = table.querySelector(`.subtotal-cell[data-kind="real"][data-mi="${i}"]`);
+    const projCell = table.querySelector(`.subtotal-cell[data-kind="proj"][data-mi="${i}"]`);
+    const diffCell = table.querySelector(`.subtotal-cell[data-kind="diff"][data-mi="${i}"]`);
+    if (realCell) realCell.textContent = fmt(realSum, state.displayCurrency);
+    if (projCell) projCell.textContent = fmt(projSum, state.displayCurrency);
+    if (diffCell) {
+      const d = realSum - projSum;
+      diffCell.textContent = fmt(d, state.displayCurrency);
+      diffCell.classList.toggle('pos', d >= 0);
+      diffCell.classList.toggle('neg', d < 0);
+    }
   });
 }
 
 document.addEventListener('click', async (e) => {
   if (e.target.id !== 'saveBtn') return;
-  const btn = e.target;
-  const statusEl = document.getElementById('saveStatus');
-  btn.disabled = true;
-  statusEl.className = 'status';
-  statusEl.textContent = 'Guardando…';
+  const btn = e.target, statusEl = document.getElementById('saveStatus');
+  btn.disabled = true; statusEl.className = 'status'; statusEl.textContent = 'Guardando…';
 
-  const table = state.type === 'actual' ? 'cash_flow_actual' : 'cash_flow_projected';
-  const monthDate = `${state.month}-01`;
-  const inputs = document.querySelectorAll('#formArea input[type="number"]');
-  const rows = [];
-  inputs.forEach(i => {
-    if (i.value === '') return;
-    const row = {
-      account_id: Number(i.dataset.accountId),
-      country_id: state.countryId,
-      month: monthDate,
-      amount: parseFloat(i.value)
-    };
-    if (state.type === 'actual') row.is_partial_month = state.partial;
-    rows.push(row);
+  const actualRows = [], projectedRows = [];
+  document.querySelectorAll('input.real-input').forEach(inp => {
+    if (inp.value === '') return;
+    const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
+    const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code;
+    actualRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: cur, is_partial_month: mk === CURRENT_MONTH_KEY });
+  });
+  document.querySelectorAll('input.proj-input').forEach(inp => {
+    if (inp.value === '') return;
+    const accountId = Number(inp.dataset.accountId), mk = inp.dataset.month;
+    const cur = rowCurrency[accountId] || (accounts.find(a=>a.id==accountId)||{}).default_currency_code;
+    projectedRows.push({ account_id: accountId, country_id: state.countryId, month: `${mk}-01`, amount: parseFloat(inp.value), currency_code: cur });
   });
 
-  if (!rows.length) {
-    statusEl.textContent = 'No hay valores para guardar';
-    statusEl.classList.add('err');
-    btn.disabled = false;
-    return;
+  if (!actualRows.length && !projectedRows.length) {
+    statusEl.textContent = 'No hay valores para guardar'; statusEl.classList.add('err'); btn.disabled = false; return;
   }
 
-  const { error } = await sb.from(table).upsert(rows, { onConflict: 'account_id,country_id,month' });
-  btn.disabled = false;
-  if (error) {
-    statusEl.textContent = 'Error: ' + error.message;
-    statusEl.classList.add('err');
-  } else {
-    statusEl.textContent = `Guardado ✓ ${rows.length} cuentas actualizadas`;
-    statusEl.classList.add('ok');
+  let err = null;
+  if (actualRows.length) {
+    const { error } = await sb.from('cash_flow_actual').upsert(actualRows, { onConflict: 'account_id,country_id,month' });
+    if (error) err = error;
   }
+  if (!err && projectedRows.length) {
+    const { error } = await sb.from('cash_flow_projected').upsert(projectedRows, { onConflict: 'account_id,country_id,month' });
+    if (error) err = error;
+  }
+  btn.disabled = false;
+  if (err) { statusEl.textContent = 'Error: ' + err.message; statusEl.classList.add('err'); }
+  else { statusEl.textContent = `Guardado ✓ ${actualRows.length + projectedRows.length} valores`; statusEl.classList.add('ok'); }
 });
 
 init();
