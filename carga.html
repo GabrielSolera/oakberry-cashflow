@@ -6,25 +6,44 @@
 <title>Carga anual · OAKBERRY Centroamérica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <style>
   :root{
-    --bg: #FAF9F6; --ink: #221A2B; --ink-soft: #6B6274;
-    --acai: #4A1942; --acai-soft: #7A4270;
+    --bg: #F5F3F7; --ink: #1E1726; --ink-soft: #6B6274;
+    --acai: #4A1942; --acai-soft: #7A4270; --acai-glow: #9C4E8C;
     --mint: #2E7D53; --mint-bg: #E7F3EC;
     --rust: #B4402A; --rust-bg: #FBEBE7;
     --border: #E5E1DC; --card: #FFFFFF;
     --real-bg: #F4F0F6; --proj-bg: #FBFAF7;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; font-feature-settings: "tnum" 1, "lnum" 1; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; font-feature-settings: "tnum" 1, "lnum" 1; position: relative; }
+
+  .bg-layer { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .bg-layer .mesh {
+    position: absolute; inset: -20%;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(74,25,66,0.10), transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(46,125,83,0.09), transparent 42%),
+      radial-gradient(circle at 75% 85%, rgba(156,78,140,0.10), transparent 45%),
+      radial-gradient(circle at 20% 80%, rgba(46,125,83,0.07), transparent 40%);
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-3%, 2%) scale(1.06); } }
+  .bg-layer svg.waves { position: absolute; bottom: 0; left: 0; width: 100%; height: 220px; opacity: .45; }
+  .bg-layer svg.waves path { animation: wave-shift 18s ease-in-out infinite; }
+  .bg-layer svg.waves path.p2 { animation-duration: 24s; animation-delay: -4s; }
+  @keyframes wave-shift { 0%, 100% { transform: translateX(0) translateY(0); } 50% { transform: translateX(-2%) translateY(6px); } }
   header { display: flex; align-items: baseline; justify-content: space-between; padding: 32px 40px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 14px; }
   .brand { display: flex; align-items: baseline; gap: 12px; }
-  .brand .mark { width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle at 32% 30%, var(--acai-soft), var(--acai) 70%); flex-shrink: 0; }
-  h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 23px; margin: 0; letter-spacing: -0.01em; }
+  .brand .mark { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--acai-glow), var(--acai) 65%); flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(74,25,66,0.25); }
+  .brand .mark svg { width: 18px; height: 18px; color: #fff; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 22px; margin: 0; letter-spacing: -0.01em; }
   .subtitle { color: var(--ink-soft); font-size: 13.5px; margin-top: 2px; }
-  .nav-link { align-self: center; font-size: 13.5px; color: var(--acai); text-decoration: none; }
+  .nav-link { align-self: center; font-size: 13.5px; color: var(--acai); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+  .nav-link svg { width: 14px; height: 14px; }
 
   main { padding: 24px 40px 140px; max-width: 1360px; }
 
@@ -37,20 +56,25 @@
   .toggle-group button.active { background: var(--card); color: var(--acai); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
   .spacer { flex: 1; }
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .btn-ghost { background: var(--bg); border: 1px solid var(--border); color: var(--acai); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-ghost { background: var(--bg); border: 1px solid var(--border); color: var(--acai); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .15s ease; }
+  .btn-ghost svg { width: 14px; height: 14px; }
   .btn-ghost:hover { background: #F0EDE8; }
-  .btn-danger { background: var(--rust-bg); border: 1px solid var(--rust); color: var(--rust); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .btn-danger { background: var(--rust-bg); border: 1px solid var(--rust); color: var(--rust); padding: 8px 13px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-danger svg { width: 14px; height: 14px; }
   .btn-danger:hover { background: #F7DAD3; }
   input[type="file"] { display: none; }
   .bulk-bar { display: flex; align-items: center; gap: 12px; background: var(--rust-bg); border: 1px solid var(--rust); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; font-size: 13px; color: var(--rust); }
   .acct-select { margin-right: 8px; accent-color: var(--acai); vertical-align: middle; }
-  .edit-line { color: var(--acai-soft); cursor: pointer; font-size: 12px; margin-left: 6px; opacity: .6; }
+  .edit-line { color: var(--acai-soft); cursor: pointer; margin-left: 6px; opacity: .6; display: inline-flex; vertical-align: middle; }
+  .edit-line svg { width: 12px; height: 12px; }
   .edit-line:hover { opacity: 1; }
 
-  .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+  .bank-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; transition: box-shadow .18s ease; }
+  .bank-panel:hover { box-shadow: 0 10px 24px rgba(74,25,66,0.08); }
   .bank-panel .current { flex: 1; min-width: 220px; }
-  .bank-panel .current .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
-  .bank-panel .current .amount { font-family: 'Fraunces', serif; font-size: 22px; }
+  .bank-panel .current .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .bank-panel .current .label svg { width: 14px; height: 14px; }
+  .bank-panel .current .amount { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 21px; }
   .bank-panel .current .meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
   .bank-panel input[type="date"], .bank-panel input.amount-input { font-family: inherit; font-size: 13.5px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); }
   .bank-panel input.amount-input { width: 160px; text-align: left; }
@@ -58,11 +82,13 @@
 
   .add-category { margin-bottom: 14px; }
 
-  section.group { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+  section.group { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 14px; overflow: hidden; transition: box-shadow .18s ease; }
+  section.group:hover { box-shadow: 0 8px 20px rgba(74,25,66,0.06); }
   .group-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; gap: 10px; }
-  .group-header h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15.5px; margin: 0; }
+  .group-header h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; margin: 0; }
   .group-header .hint { font-size: 12px; color: var(--ink-soft); flex: 1; }
-  .group-header button.add-line { background: var(--mint-bg); color: var(--mint); border: none; padding: 5px 11px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .group-header button.add-line { background: var(--mint-bg); color: var(--mint); border: none; padding: 5px 11px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  .group-header button.add-line svg { width: 12px; height: 12px; }
   .group-body { border-top: 1px solid var(--border); overflow-x: auto; }
   .group-body.collapsed { display: none; }
 
@@ -85,8 +111,9 @@
   tr.subtotal-row td { font-weight: 600; background: #F0EDE8; }
   tr.subtotal-row td.type-label { font-weight: 500; }
 
-  .grand-total { background: var(--acai); color: #fff; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; overflow-x: auto; }
-  .grand-total h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 15.5px; margin: 0 0 10px; color: #fff; }
+  .grand-total { background: linear-gradient(135deg, var(--acai), #3A1434); color: #fff; border-radius: 14px; padding: 18px 22px; margin-bottom: 20px; overflow-x: auto; }
+  .grand-total h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; margin: 0 0 10px; color: #fff; display: flex; align-items: center; gap: 8px; }
+  .grand-total h2 svg { width: 16px; height: 16px; }
   table.grand-grid { border-collapse: collapse; font-size: 12.5px; color: #fff; min-width: 100%; }
   table.grand-grid td, table.grand-grid th { padding: 5px 8px; text-align: right; white-space: nowrap; }
   table.grand-grid th { color: #E7D9E3; font-weight: 500; font-size: 11px; }
@@ -108,15 +135,23 @@
 </head>
 <body>
 
+<div class="bg-layer">
+  <div class="mesh"></div>
+  <svg class="waves" viewBox="0 0 1200 220" preserveAspectRatio="none">
+    <path class="p1" d="M0,150 C150,115 300,185 450,150 C600,115 750,175 900,140 C1000,120 1100,145 1200,132 L1200,220 L0,220 Z" fill="#4A1942" opacity="0.06"></path>
+    <path class="p2" d="M0,175 C180,140 320,190 480,165 C650,138 780,188 950,162 C1050,148 1120,165 1200,158 L1200,220 L0,220 Z" fill="#2E7D53" opacity="0.06"></path>
+  </svg>
+</div>
+
 <header>
   <div class="brand">
-    <span class="mark"></span>
+    <span class="mark"><svg data-lucide="table-properties"></svg></span>
     <div>
       <h1>Carga anual</h1>
       <div class="subtitle">Real, proyectado y diferencia — categorías a tu medida</div>
     </div>
   </div>
-  <a class="nav-link" href="index.html">← Volver al resumen</a>
+  <a class="nav-link" href="index.html"><svg data-lucide="arrow-left"></svg>Volver al resumen</a>
 </header>
 
 <main id="main">
@@ -145,6 +180,8 @@ let actuals = {}, projected = {}, rowCurrency = {};
 let rates = {};
 let latestBalance = null;
 let selectedAccounts = new Set();
+
+function icons() { if (window.lucide) window.lucide.createIcons(); }
 
 function fmt(n, currency) {
   const sign = n < 0 ? '-' : '';
@@ -236,20 +273,20 @@ function renderShell() {
       </div>` : ''}
       <div class="spacer"></div>
       <div class="btn-row">
-        <button class="btn-ghost" id="templateBtn">↓ Plantilla</button>
-        <button class="btn-ghost" id="exportBtn">↓ Descargar Excel</button>
-        <button class="btn-ghost" id="importBtn">↑ Importar datos</button>
+        <button class="btn-ghost" id="templateBtn"><svg data-lucide="file-down"></svg>Plantilla</button>
+        <button class="btn-ghost" id="exportBtn"><svg data-lucide="download"></svg>Descargar Excel</button>
+        <button class="btn-ghost" id="importBtn"><svg data-lucide="upload"></svg>Importar datos</button>
         <input type="file" id="importFile" accept=".xlsx,.xls,.csv" />
       </div>
     </div>
     <div class="bulk-bar" id="bulkBar" style="display:none;">
       <span id="bulkCount"></span>
-      <button class="btn-danger" id="bulkDeleteBtn">🗑 Eliminar seleccionadas</button>
+      <button class="btn-danger" id="bulkDeleteBtn"><svg data-lucide="trash-2"></svg>Eliminar seleccionadas</button>
       <button class="btn-ghost" id="bulkClearBtn">Cancelar selección</button>
     </div>
     <div class="bank-panel" id="bankPanel">
       <div class="current">
-        <div class="label">Saldo de banco actual</div>
+        <div class="label"><svg data-lucide="landmark"></svg>Saldo de banco actual</div>
         <div class="amount" id="bankAmount">—</div>
         <div class="meta" id="bankMeta">Sin registrar</div>
       </div>
@@ -257,10 +294,11 @@ function renderShell() {
       <div class="field"><label>Nuevo saldo</label><input type="text" inputmode="decimal" class="amount-input" id="bankAmountInput" placeholder="0"/></div>
       <button class="bank-save" id="bankSaveBtn">Actualizar saldo</button>
     </div>
-    <div class="add-category"><button class="btn-ghost" id="addCategoryBtn">+ Agregar categoría</button></div>
+    <div class="add-category"><button class="btn-ghost" id="addCategoryBtn"><svg data-lucide="plus-circle"></svg>Agregar categoría</button></div>
     <div id="gridArea"></div>
     <div id="grandTotalArea"></div>
   `;
+  icons();
 
   document.getElementById('countrySelect').addEventListener('change', async e => {
     state.countryId = Number(e.target.value);
@@ -433,7 +471,7 @@ function renderGrid() {
       <div class="group-header">
         <h2>${cat.name}</h2>
         <span class="hint">${catAccounts.length} línea${catAccounts.length===1?'':'s'}</span>
-        <button class="add-line" data-add-line="${cat.id}">+ Agregar línea</button>
+        <button class="add-line" data-add-line="${cat.id}"><svg data-lucide="plus"></svg>Agregar línea</button>
       </div>
       <div class="group-body collapsed">
         <table class="year-grid" data-category-table="${cat.id}">
@@ -487,6 +525,7 @@ function renderGrid() {
   categories.forEach(cat => recalcCategory(String(cat.id)));
   renderGrandTotalShell();
   recalcGrandTotal();
+  icons();
 
   document.getElementById('saveBar').style.display = 'flex';
   document.getElementById('saveStatus').textContent = '';
@@ -511,7 +550,7 @@ function acctRowsHtml(a, curOpts) {
     ? `<select class="acct-currency" data-account-id="${a.id}">${curOpts.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('')}</select>`
     : `<span>${cur}</span>`;
   return `
-    <tr class="row-real"><td class="acct-name" rowspan="3"><input type="checkbox" class="acct-select" data-account-id="${a.id}"/>${a.name}<span class="edit-line" data-edit-line="${a.id}" data-current-name="${a.name.replace(/"/g,'&quot;')}">✎</span></td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
+    <tr class="row-real"><td class="acct-name" rowspan="3"><input type="checkbox" class="acct-select" data-account-id="${a.id}"/>${a.name}<span class="edit-line" data-edit-line="${a.id}" data-current-name="${a.name.replace(/"/g,'&quot;')}"><svg data-lucide="pencil"></svg></span></td><td class="currency-cell" rowspan="3">${curSelect}</td><td class="type-label">Real</td>${monthCells(realVals,'real-input')}</tr>
     <tr class="row-proj"><td class="type-label">Proyectado</td>${monthCells(projVals,'proj-input')}</tr>
     <tr class="row-diff"><td class="type-label">Diferencia</td>${diffCells}</tr>
   `;
@@ -577,7 +616,7 @@ function recalcCategory(catId) {
 function renderGrandTotalShell() {
   document.getElementById('grandTotalArea').innerHTML = `
     <div class="grand-total">
-      <h2>Total general y flujo acumulado</h2>
+      <h2><svg data-lucide="trending-up"></svg>Total general y flujo acumulado</h2>
       <table class="grand-grid">
         <thead><tr><th></th>${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}</tr></thead>
         <tbody>
