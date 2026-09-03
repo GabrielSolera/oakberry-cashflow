@@ -201,7 +201,7 @@ async function load() {
   if (cErr) { renderError(cErr); return; }
   countries = countryRows;
 
-  const { data: catRows, error: catErr } = await sb.from('categories').select('id,country_id,name,sort_order').order('sort_order');
+  const { data: catRows, error: catErr } = await sb.from('categories').select('id,country_id,name,sort_order').eq('active', true).order('sort_order');
   if (catErr) { renderError(catErr); return; }
   categoriesByCountry = {};
   catRows.forEach(c => { if (!categoriesByCountry[c.country_id]) categoriesByCountry[c.country_id] = []; categoriesByCountry[c.country_id].push(c); });
