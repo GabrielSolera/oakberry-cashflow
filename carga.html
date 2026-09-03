@@ -336,7 +336,7 @@ function renderShell() {
 }
 
 async function loadCategoriesAndAccounts() {
-  const { data: catRows, error: catErr } = await sb.from('categories').select('id,name,sort_order').eq('country_id', state.countryId).order('sort_order');
+  const { data: catRows, error: catErr } = await sb.from('categories').select('id,name,sort_order').eq('country_id', state.countryId).eq('active', true).order('sort_order');
   if (catErr) { renderError(catErr); return; }
   categories = catRows;
 
