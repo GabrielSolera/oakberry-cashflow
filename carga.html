@@ -303,6 +303,7 @@ function renderShell() {
     <div class="add-category"><button class="btn-ghost" id="addCategoryBtn"><svg data-lucide="plus-circle"></svg>Agregar categoría</button></div>
     <div id="gridArea"></div>
     <div id="grandTotalArea"></div>
+    <div id="balanceArea"></div>
   `;
   icons();
 
@@ -323,6 +324,7 @@ function renderShell() {
     state.displayCurrency = btn.dataset.cur;
     toggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
     renderGrid();
+    loadAndRenderBalance();
   });
   document.getElementById('bankSaveBtn').addEventListener('click', saveBankBalance);
   attachAmountFormatting(document.getElementById('bankAmountInput'));
@@ -457,6 +459,7 @@ async function loadYearData() {
   });
 
   renderGrid();
+  loadAndRenderBalance();
 }
 
 function renderGrid() {
@@ -599,6 +602,111 @@ function categoryMonthlyTotals(catId) {
     });
   });
   return totals;
+}
+
+function monthlyNetFlow(mk) {
+  let realSum = 0, hasReal = false, projSum = 0, hasProj = false;
+  accounts.forEach(a => {
+    const cur = rowCurrency[a.id] || a.default_currency_code;
+    const rv = actuals[a.id] && actuals[a.id][mk];
+    if (rv) { hasReal = true; realSum += convert(rv.amount, rv.currency_code || cur, mk); }
+    const pv = projected[a.id] && projected[a.id][mk];
+    if (pv) { hasProj = true; projSum += convert(pv.amount, pv.currency_code || cur, mk); }
+  });
+  return hasReal ? realSum : (hasProj ? projSum : 0);
+}
+
+async function loadAndRenderBalance() {
+  const anchorKey = `${state.year - 1}-12`;
+  const yearMonthKeys = MONTHS_ES.map((_, i) => `${state.year}-${String(i + 1).padStart(2, '0')}`);
+  const monthDates = [anchorKey, ...yearMonthKeys].map(mk => `${mk}-01`);
+
+  const { data: rows, error } = await sb.from('balance_check')
+    .select('month,reported_final,currency_code')
+    .eq('country_id', state.countryId)
+    .in('month', monthDates);
+  if (error) { document.getElementById('balanceArea').innerHTML = `<div class="empty-state">Error cargando balance: ${error.message}</div>`; return; }
+
+  const reported = {};
+  (rows || []).forEach(r => { reported[r.month.slice(0, 7)] = Number(r.reported_final); });
+
+  const balances = {};
+  let prevFinal = reported[anchorKey] !== undefined ? reported[anchorKey] : 0;
+  yearMonthKeys.forEach(mk => {
+    const flujo = monthlyNetFlow(mk);
+    const inicial = prevFinal;
+    const finalCalc = inicial + flujo;
+    balances[mk] = { inicial, flujo, finalCalc };
+    prevFinal = finalCalc;
+  });
+
+  renderBalanceTable(anchorKey, yearMonthKeys, balances, reported);
+}
+
+function renderBalanceTable(anchorKey, monthKeys, balances, reported) {
+  const cur = state.displayCurrency;
+  const area = document.getElementById('balanceArea');
+  area.innerHTML = `
+    <section class="group" data-balance="1">
+      <div class="group-header">
+        <h2><svg data-lucide="scale"></svg>Balance (conciliación)</h2>
+        <span class="hint">Compara contra el balance final que te mande el contador</span>
+      </div>
+      <div class="group-body">
+        <div style="padding:14px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <label style="font-size:12.5px; color:var(--ink-soft);">Saldo inicial (dic ${anchorKey.split('-')[0]})</label>
+          <input type="text" inputmode="decimal" class="amount-input" id="balanceAnchor" value="${reported[anchorKey] !== undefined ? formatInputNumber(reported[anchorKey]) : ''}" placeholder="0"/>
+        </div>
+        <table class="year-grid" data-balance-table="1">
+          <thead><tr><th>Mes</th><th>Inicial (calc)</th><th>Flujo neto</th><th>Final (calc)</th><th>Final reportado</th><th>Diferencia</th></tr></thead>
+          <tbody>
+            ${monthKeys.map(mk => {
+              const b = balances[mk];
+              const rep = reported[mk];
+              const diff = rep !== undefined ? rep - b.finalCalc : null;
+              const [y, mo] = mk.split('-');
+              return `<tr>
+                <td>${MONTHS_ES[parseInt(mo, 10) - 1]} ${y}</td>
+                <td>${fmt(b.inicial, cur)}</td>
+                <td>${fmt(b.flujo, cur)}</td>
+                <td>${fmt(b.finalCalc, cur)}</td>
+                <td><input type="text" inputmode="decimal" class="amount-input balance-reported" data-month="${mk}" value="${rep !== undefined ? formatInputNumber(rep) : ''}" placeholder="—"/></td>
+                <td class="diff-cell ${diff !== null ? (diff >= 0 ? 'pos' : 'neg') : ''}">${diff !== null ? fmt(diff, cur) : '—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-bottom:24px;">
+      <span id="balanceSaveStatus" style="font-size:13px; color:var(--ink-soft);"></span>
+      <button class="btn-ghost" id="saveBalanceBtn"><svg data-lucide="save"></svg>Guardar balance</button>
+    </div>
+  `;
+  attachAmountFormatting(document.getElementById('balanceAnchor'));
+  area.querySelectorAll('.balance-reported').forEach(inp => attachAmountFormatting(inp));
+  icons();
+
+  document.getElementById('saveBalanceBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveBalanceBtn');
+    const statusEl = document.getElementById('balanceSaveStatus');
+    btn.disabled = true; statusEl.textContent = 'Guardando…';
+    const country = countries.find(c => c.id === state.countryId);
+    const rowsToSave = [];
+    const anchorVal = parseInputNumber(document.getElementById('balanceAnchor').value);
+    if (!isNaN(anchorVal)) rowsToSave.push({ country_id: state.countryId, month: `${anchorKey}-01`, reported_final: anchorVal, currency_code: country.currency_code });
+    area.querySelectorAll('.balance-reported').forEach(inp => {
+      if (inp.value === '') return;
+      const v = parseInputNumber(inp.value);
+      if (isNaN(v)) return;
+      rowsToSave.push({ country_id: state.countryId, month: `${inp.dataset.month}-01`, reported_final: v, currency_code: country.currency_code });
+    });
+    if (!rowsToSave.length) { statusEl.textContent = 'Nada para guardar'; btn.disabled = false; return; }
+    const { error } = await sb.from('balance_check').upsert(rowsToSave, { onConflict: 'country_id,month' });
+    btn.disabled = false;
+    if (error) { statusEl.textContent = 'Error: ' + error.message; }
+    else { statusEl.textContent = 'Guardado ✓'; loadAndRenderBalance(); }
+  });
 }
 
 function recalcCategory(catId) {
