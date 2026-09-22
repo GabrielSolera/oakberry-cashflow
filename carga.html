@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OB Flujo">
+<meta name="apple-mobile-web-app-title" content="CashFlow CA">
 <title>Carga anual · OAKBERRY Centroamérica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,18 +99,18 @@
   .group-body { border-top: 1px solid var(--border); overflow-x: auto; }
   .group-body.collapsed { display: none; }
 
-  table.year-grid { border-collapse: collapse; font-size: 12.5px; min-width: 100%; }
-  table.year-grid th, table.year-grid td { border-bottom: 1px solid var(--border); padding: 5px 6px; white-space: nowrap; }
+  table.year-grid { border-collapse: collapse; font-size: 12.5px; width: 100%; min-width: 900px; table-layout: fixed; }
+  table.year-grid th, table.year-grid td { border-bottom: 1px solid var(--border); padding: 5px 6px; white-space: nowrap; overflow: hidden; }
   table.year-grid thead th { color: var(--ink-soft); font-weight: 500; font-size: 11px; text-align: right; padding-top: 10px; padding-bottom: 8px; }
   table.year-grid thead th:first-child, table.year-grid thead th:nth-child(2), table.year-grid thead th:nth-child(3) { text-align: left; }
-  table.year-grid td.acct-name { font-size: 12.5px; vertical-align: top; padding-top: 8px; max-width: 190px; white-space: normal; }
+  table.year-grid td.acct-name { font-size: 12.5px; vertical-align: top; padding-top: 8px; white-space: normal; overflow-wrap: break-word; }
   table.year-grid td.currency-cell { vertical-align: top; padding-top: 6px; }
-  table.year-grid td.currency-cell select { font-family: inherit; font-size: 11.5px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); }
+  table.year-grid td.currency-cell select { font-family: inherit; font-size: 11.5px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); width: 100%; }
   table.year-grid td.type-label { color: var(--ink-soft); font-size: 11px; }
   tr.row-real td.type-label { color: var(--acai); }
   tr.row-real { background: var(--real-bg); }
   tr.row-proj { background: var(--proj-bg); }
-  table.year-grid input.amount-input { width: 78px; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
+  table.year-grid input.amount-input { width: 100%; box-sizing: border-box; text-align: right; font-family: inherit; font-feature-settings: "tnum" 1; font-size: 12px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--ink); }
   table.year-grid input.amount-input:focus { outline: 2px solid var(--acai-soft); outline-offset: -1px; }
   .diff-cell { text-align: right; font-size: 11.5px; }
   .diff-cell.pos { color: var(--mint); }
@@ -121,8 +121,8 @@
   .grand-total { background: linear-gradient(135deg, var(--acai), #3A1434); color: #fff; border-radius: 14px; padding: 18px 22px; margin-bottom: 20px; overflow-x: auto; }
   .grand-total h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; margin: 0 0 10px; color: #fff; display: flex; align-items: center; gap: 8px; }
   .grand-total h2 svg { width: 16px; height: 16px; }
-  table.grand-grid { border-collapse: collapse; font-size: 12.5px; color: #fff; min-width: 100%; }
-  table.grand-grid td, table.grand-grid th { padding: 5px 8px; text-align: right; white-space: nowrap; }
+  table.grand-grid { border-collapse: collapse; font-size: 12.5px; color: #fff; width: 100%; min-width: 700px; table-layout: fixed; }
+  table.grand-grid td, table.grand-grid th { padding: 5px 8px; text-align: right; white-space: nowrap; overflow: hidden; }
   table.grand-grid th { color: #E7D9E3; font-weight: 500; font-size: 11px; }
   table.grand-grid td:first-child, table.grand-grid th:first-child { text-align: left; }
 
@@ -265,6 +265,48 @@ async function init() {
 
 function renderError(err) { document.getElementById('main').innerHTML = `<div class="empty-state">No se pudo cargar: ${err.message || err}</div>`; }
 
+function renderFx() {
+  const area = document.getElementById('fxArea');
+  const country = countries.find(c => c.id === state.countryId);
+  const cur = country?.currency_code;
+  if (!cur || cur === 'USD') { area.innerHTML = ''; return; }
+  const table = rates[cur] || {};
+  const monthKeys = Object.keys(table).sort();
+  const latestKey = monthKeys[monthKeys.length - 1];
+  const latestRate = latestKey ? table[latestKey] : '';
+  area.innerHTML = `
+    <div class="bank-panel" style="margin-top:-6px;">
+      <div class="current">
+        <div class="label"><svg data-lucide="repeat"></svg>Tipo de cambio (${cur} por USD)</div>
+        <div class="amount">${latestRate ? formatInputNumber(latestRate) : '—'}</div>
+        <div class="meta">${latestKey ? 'Vigente desde ' + latestKey : 'Sin registrar'} — usado para convertir en toda la app</div>
+      </div>
+      <div class="field"><label>Nuevo tipo de cambio</label><input type="text" inputmode="decimal" class="amount-input" id="fxInput" placeholder="0"/></div>
+      <button class="bank-save" id="fxSaveBtn">Actualizar</button>
+    </div>
+  `;
+  icons();
+  attachAmountFormatting(document.getElementById('fxInput'));
+  document.getElementById('fxSaveBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('fxSaveBtn');
+    const v = parseInputNumber(document.getElementById('fxInput').value);
+    if (isNaN(v)) return;
+    btn.disabled = true;
+    const mk = `${TODAY.getFullYear()}-${String(TODAY.getMonth()+1).padStart(2,'0')}`;
+    const { error } = await sb.from('exchange_rates').upsert(
+      { currency_code: cur, month: `${mk}-01`, rate_to_usd: v },
+      { onConflict: 'currency_code,month' }
+    );
+    btn.disabled = false;
+    if (error) { alert('Error: ' + error.message); return; }
+    if (!rates[cur]) rates[cur] = {};
+    rates[cur][mk] = v;
+    renderFx();
+    renderGrid();
+    loadAndRenderBalance();
+  });
+}
+
 function renderShell() {
   const years = [TODAY.getFullYear()-1, TODAY.getFullYear(), TODAY.getFullYear()+1];
   const country = countries.find(c => c.id === state.countryId);
@@ -292,6 +334,7 @@ function renderShell() {
         <input type="file" id="importFile" accept=".xlsx,.xls,.csv" />
       </div>
     </div>
+    <div id="fxArea"></div>
     <div class="bulk-bar" id="bulkBar" style="display:none;">
       <span id="bulkCount"></span>
       <button class="btn-danger" id="bulkDeleteBtn"><svg data-lucide="trash-2"></svg>Eliminar seleccionadas</button>
@@ -313,6 +356,7 @@ function renderShell() {
     <div id="balanceArea"></div>
   `;
   icons();
+  renderFx();
 
   document.getElementById('countrySelect').addEventListener('change', async e => {
     state.countryId = Number(e.target.value);
@@ -491,6 +535,7 @@ function renderGrid() {
       </div>
       <div class="group-body collapsed">
         <table class="year-grid" data-category-table="${cat.id}">
+          <colgroup><col style="width:16%"><col style="width:6%"><col style="width:7%">${MONTHS_ES.map(() => `<col style="width:5.9%">`).join('')}</colgroup>
           <thead><tr><th>Cuenta</th><th>Moneda</th><th></th>${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}</tr></thead>
           <tbody>
             ${catAccounts.map(a => acctRowsHtml(a, curOpts)).join('')}
@@ -665,6 +710,7 @@ function renderBalanceTable(anchorKey, monthKeys, balances, reported) {
           <input type="text" inputmode="decimal" class="amount-input" id="balanceAnchor" value="${reported[anchorKey] !== undefined ? formatInputNumber(reported[anchorKey]) : ''}" placeholder="0"/>
         </div>
         <table class="year-grid" data-balance-table="1">
+          <colgroup><col style="width:14%"><col style="width:18%"><col style="width:18%"><col style="width:18%"><col style="width:18%"><col style="width:14%"></colgroup>
           <thead><tr><th>Mes</th><th>Inicial (calc)</th><th>Flujo neto</th><th>Final (calc)</th><th>Final reportado</th><th>Diferencia</th></tr></thead>
           <tbody>
             ${monthKeys.map(mk => {
@@ -739,6 +785,7 @@ function renderGrandTotalShell() {
     <div class="grand-total">
       <h2><svg data-lucide="trending-up"></svg>Total general y flujo acumulado</h2>
       <table class="grand-grid">
+        <colgroup><col style="width:14%">${MONTHS_ES.map(() => `<col style="width:7.166%">`).join('')}</colgroup>
         <thead><tr><th></th>${MONTHS_ES.map(m => `<th>${m}</th>`).join('')}</tr></thead>
         <tbody>
           <tr><td>Total real</td>${MONTHS_ES.map((m,i) => `<td data-grand="real" data-mi="${i}"></td>`).join('')}</tr>
